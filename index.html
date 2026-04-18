@@ -3580,23 +3580,9 @@ function initDBSearch() {
 
 
 // ── GAME MIC DETECTION ────────────────────────────────────────────────────────
-async function startGameMic() {
-  try {
-    const AC = window.AudioContext || window.webkitAudioContext;
-    gameMicCtx = new AC();
-    if (gameMicCtx.state === "suspended") await gameMicCtx.resume();
-    const stream = await navigator.mediaDevices.getUserMedia({audio:true,video:false});
-    gameMicStream = stream;
-    const src = gameMicCtx.createMediaStreamSource(stream);
-    gameMicAnalyser = gameMicCtx.createAnalyser();
-    gameMicAnalyser.fftSize = 4096;
-    gameMicAnalyser.smoothingTimeConstant = 0.4;
-    src.connect(gameMicAnalyser);
-    gameMicRaf = requestAnimationFrame(gameMicTick);
-  } catch(e) {
-    // Mic denied — fallback to buttons
-    gameMicMode = false;
-  }
+function startGameMic() {
+  // Called from startGame which is triggered by user tap — permission granted inline
+  // Actual setup happens in startGame via getUserMedia promise
 }
 
 function stopGameMic() {
@@ -3674,7 +3660,7 @@ function toggleGameMode() {
   if (gameMicMode) {
     if(modeBtn){modeBtn.style.background="#0d0d1f";modeBtn.style.color="#666";modeBtn.style.border="1px solid #ffffff15";}
     if(micBtn){micBtn.style.background="#34d39922";micBtn.style.color="#34d399";micBtn.style.border="1px solid #34d39955";}
-    if(desc) desc.textContent="🎙 Toque os acordes no violão — microfone detecta";
+    if(desc) desc.innerHTML="🎙 Microfone ativado ao iniciar &nbsp;<span style=\"color:#34d39988;font-size:10px\">(Safari pedirá permissão)</span>";
   } else {
     if(modeBtn){modeBtn.style.background="#f59e0b22";modeBtn.style.color="#f59e0b";modeBtn.style.border="1px solid #f59e0b55";}
     if(micBtn){micBtn.style.background="#0d0d1f";micBtn.style.color="#666";micBtn.style.border="1px solid #ffffff15";}
@@ -3742,7 +3728,30 @@ function startGame(lv){
   initD3Particles();
   gameRunning=true; gameLastTime=performance.now();
   gameRaf=requestAnimationFrame(gameLoop);
-  if (gameMicMode) startGameMic();
+  if (gameMicMode) {
+    // Mic must be requested synchronously from user gesture
+    navigator.mediaDevices.getUserMedia({audio:true, video:false})
+      .then(stream => {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        gameMicCtx = new AC();
+        gameMicCtx.resume();
+        const src = gameMicCtx.createMediaStreamSource(stream);
+        gameMicAnalyser = gameMicCtx.createAnalyser();
+        gameMicAnalyser.fftSize = 4096;
+        gameMicAnalyser.smoothingTimeConstant = 0.4;
+        src.connect(gameMicAnalyser);
+        gameMicStream = stream;
+        gameMicRaf = requestAnimationFrame(gameMicTick);
+        // Show active indicator
+        const bl = document.getElementById("g-btns-bot");
+        if (bl) bl.querySelector("div").style.color = "#34d399";
+      })
+      .catch(() => {
+        // Permission denied — fall back to buttons
+        gameMicMode = false;
+        buildGameBtns();
+      });
+  }
 }
 function buildGameBtns(){
   const f=field(gameKey);
@@ -3940,7 +3949,7 @@ initCaged();
       background:#0d0d1f;color:#888;font-size:13px;font-weight:700;
       cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
       border:1px solid #ffffff15;transition:all.2s">
-      <span>🎸</span>
+      <span>🎙</span>
       <span>Violão</span>
     </button>
   </div>
