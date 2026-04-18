@@ -3578,6 +3578,78 @@ function initDBSearch() {
   searchGospelDB('');
 }
 
+
+// ── GAME MIC DETECTION ────────────────────────────────────────────────────────
+async function startGameMic() {
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    gameMicCtx = new AC();
+    if (gameMicCtx.state === "suspended") await gameMicCtx.resume();
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+    gameMicStream = stream;
+    const src = gameMicCtx.createMediaStreamSource(stream);
+    gameMicAnalyser = gameMicCtx.createAnalyser();
+    gameMicAnalyser.fftSize = 4096;
+    gameMicAnalyser.smoothingTimeConstant = 0.4;
+    src.connect(gameMicAnalyser);
+    gameMicRaf = requestAnimationFrame(gameMicTick);
+  } catch(e) {
+    // Mic denied — fallback to buttons
+    gameMicMode = false;
+  }
+}
+
+function stopGameMic() {
+  if (gameMicRaf) cancelAnimationFrame(gameMicRaf);
+  gameMicStream && gameMicStream.getTracks().forEach(t => t.stop());
+  gameMicStream = null; gameMicAnalyser = null; gameMicRaf = null;
+}
+
+function gameMicTick() {
+  if (!gameMicAnalyser || !gameRunning) return;
+  gameMicRaf = requestAnimationFrame(gameMicTick);
+
+  // RMS check
+  const td = new Float32Array(gameMicAnalyser.fftSize);
+  gameMicAnalyser.getFloatTimeDomainData(td);
+  let rms = 0; for(let i=0;i<td.length;i++) rms+=td[i]*td[i];
+  rms = Math.sqrt(rms/td.length);
+  if (rms < 0.01) return;
+
+  // Chord detection
+  const fd = new Float32Array(gameMicAnalyser.frequencyBinCount);
+  gameMicAnalyser.getFloatFrequencyData(fd);
+  const f = field(gameKey);
+  const {best, score} = detectChord(fd, gameMicCtx.sampleRate, gameMicAnalyser.fftSize*2, f);
+  if (!best || score < 4.0) return;
+
+  // Debounce
+  const now = Date.now();
+  if (now - gameMicLastTrig < 500) return;
+
+  // Find matching note on screen
+  let hit = null, bestDist = 999;
+  gameNotes.forEach(n => {
+    if (n.chord === best.chord && n.y > 0 && n.y < gHitY + 60) {
+      const d = Math.abs(n.y - gHitY);
+      if (d < bestDist) { bestDist = d; hit = n; }
+    }
+  });
+
+  if (hit) {
+    gameMicLastTrig = now;
+    gameNotes = gameNotes.filter(n => n !== hit);
+    gameCombo = Math.min(gameCombo+1, 8);
+    gameScore += 10 * Math.max(1, Math.floor(gameCombo/2));
+    gameHits++;
+    gameFeedback.push({x:hit.x, y:gHitY-25, hit:true, chord:hit.chord, life:500});
+    spawnHitParticles(hit.x, gHitY, hit.color, hit.chord);
+    playChord(field(gameKey)[hit.deg-1].semis, 0.5);
+    updateHUD();
+    if (gameHits >= gameTarget) setTimeout(()=>endGame(true), 400);
+  }
+}
+
 // ── INIT ──────────────────────────────────────────────────────────────────────
 initGraus();
 initHarm();
@@ -3591,7 +3663,24 @@ let gameNotes=[], gameScore=0, gameCombo=1, gameHits=0, gameMisses=0;
 let gameHealth=5, gameTarget=10, gameSpawnTimer=0;
 let gameLastTime=0, gameFeedback=[], gameSpawnIdx=0, gameHints=false;
 let gCanvas, gCtx, gW, gH, gHitY;
+let gameMicMode=false, gameMicStream=null, gameMicAnalyser=null, gameMicCtx=null, gameMicRaf=null, gameMicLastTrig=0;
 const GCFG={1:{interval:3200,speed:0.055,hints:true,target:10},2:{interval:2200,speed:0.09,hints:false,target:15},3:{interval:1500,speed:0.13,hints:false,target:20}};
+
+function toggleGameMode() {
+  gameMicMode = !gameMicMode;
+  const modeBtn = document.getElementById("game-mode-btn");
+  const micBtn  = document.getElementById("game-mic-btn");
+  const desc    = document.getElementById("game-mode-desc");
+  if (gameMicMode) {
+    if(modeBtn){modeBtn.style.background="#0d0d1f";modeBtn.style.color="#666";modeBtn.style.border="1px solid #ffffff15";}
+    if(micBtn){micBtn.style.background="#34d39922";micBtn.style.color="#34d399";micBtn.style.border="1px solid #34d39955";}
+    if(desc) desc.textContent="🎙 Toque os acordes no violão — microfone detecta";
+  } else {
+    if(modeBtn){modeBtn.style.background="#f59e0b22";modeBtn.style.color="#f59e0b";modeBtn.style.border="1px solid #f59e0b55";}
+    if(micBtn){micBtn.style.background="#0d0d1f";micBtn.style.color="#666";micBtn.style.border="1px solid #ffffff15";}
+    if(desc) desc.textContent="Toque os botões na tela para acertar as notas";
+  }
+}
 
 function initGameMenu(){
   const kEl=document.getElementById("game-keys"); if(!kEl) return;
@@ -3631,9 +3720,29 @@ function startGame(lv){
   gCtx.scale(dpr,dpr);
   gW=gCanvas.offsetWidth; gH=gCanvas.offsetHeight; gHitY=gH*0.8;
   buildGameBtns(); updateHUD();
+  // Show mic indicator in HUD
+  const modeLbl = document.getElementById("g-mode-lbl");
+  if (modeLbl) modeLbl.textContent = gameMicMode ? "🎙 MIC" : "COMBO";
+  // Hide buttons in mic mode
+  if (gameMicMode) {
+    const btnsTop = document.getElementById("g-btns-top");
+    const btnsBot = document.getElementById("g-btns-bot");
+    if (btnsTop) btnsTop.style.display = "none";
+    if (btnsBot) { 
+      btnsBot.innerHTML = `<div style="flex:1;padding:14px;text-align:center;
+        font-size:13px;color:#34d399;font-weight:700">
+        🎙 Toque os acordes no violão
+      </div>
+      <button onclick="endGame(false)" style="padding:14px 16px;border-radius:11px;
+        border:1px solid #ffffff15;background:#ffffff08;color:#555;font-size:11px;cursor:pointer">
+        ■ SAIR
+      </button>`;
+    }
+  }
   initD3Particles();
   gameRunning=true; gameLastTime=performance.now();
   gameRaf=requestAnimationFrame(gameLoop);
+  if (gameMicMode) startGameMic();
 }
 function buildGameBtns(){
   const f=field(gameKey);
@@ -3764,6 +3873,7 @@ function updateHUD(){
 }
 function endGame(won){
   gameRunning=false; cancelAnimationFrame(gameRaf);
+  stopGameMic();
   const acc=gameHits+gameMisses>0?Math.round(gameHits/(gameHits+gameMisses)*100):0;
   const rank=acc>=95?"S":acc>=80?"A":acc>=60?"B":acc>=40?"C":"D";
   const rc={S:"#fbbf24",A:"#34d399",B:"#60a5fa",C:"#f97316",D:"#ef4444"}[rank];
@@ -3810,6 +3920,34 @@ initCaged();
 <div class="section">
   <div class="section-title">PROGRESSÃO</div>
   <div class="prog-list" id="game-progs"></div>
+</div>
+
+<div class="section">
+  <div class="section-title">MODO DE ENTRADA</div>
+  <div style="display:flex;gap:8px;margin-bottom:4px">
+    <button id="game-mode-btn" onclick="toggleGameMode()"
+      ontouchstart="this.ontouchstart=null;toggleGameMode()"
+      style="flex:1;padding:12px;border-radius:12px;border:none;
+      background:#0d0d1f;color:#888;font-size:13px;font-weight:700;
+      cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
+      border:1px solid #ffffff15;transition:all.2s">
+      <span id="game-mode-icon">🎮</span>
+      <span id="game-mode-label">Botões</span>
+    </button>
+    <button id="game-mic-btn" onclick="toggleGameMode()"
+      ontouchstart="this.ontouchstart=null;toggleGameMode()"
+      style="flex:1;padding:12px;border-radius:12px;border:none;
+      background:#0d0d1f;color:#888;font-size:13px;font-weight:700;
+      cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
+      border:1px solid #ffffff15;transition:all.2s">
+      <span>🎸</span>
+      <span>Violão</span>
+    </button>
+  </div>
+  <div id="game-mode-desc" style="font-size:11px;color:#555;text-align:center;
+    padding:6px 0;margin-bottom:4px">
+    Toque os botões na tela para acertar as notas
+  </div>
 </div>
 
 <div class="section">
@@ -3862,7 +4000,7 @@ initCaged();
       </div>
       <div style="text-align:right">
         <div style="font-size:18px;font-weight:900;color:#f59e0b;font-family:monospace" id="g-combo">×1</div>
-        <div style="font-size:9px;color:#444;letter-spacing:1px">COMBO</div>
+        <div style="font-size:9px;color:#444;letter-spacing:1px" id="g-mode-lbl">COMBO</div>
       </div>
     </div>
     <!-- Canvas -->
