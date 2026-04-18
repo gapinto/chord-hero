@@ -647,7 +647,10 @@ async function toggleMic() {
       seqCtx=new AC();
     }
     if(seqCtx.state==="suspended") await seqCtx.resume();
-    const stream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+    const stream=await navigator.mediaDevices.getUserMedia({
+      audio:{echoCancellation:true,noiseSuppression:false,autoGainControl:true},
+      video:false
+    });
     micStream=stream;
     const src=seqCtx.createMediaStreamSource(stream);
     micAnalyser=seqCtx.createAnalyser();
@@ -1963,7 +1966,10 @@ async function startSongMic() {
     const AC = window.AudioContext || window.webkitAudioContext;
     const ctx = new AC();
     if (ctx.state === "suspended") await ctx.resume();
-    const stream = await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio:{echoCancellation:true,noiseSuppression:false,autoGainControl:true},
+      video:false
+    });
     spMicStream = stream;
     const src = ctx.createMediaStreamSource(stream);
     spMicAnalyser = ctx.createAnalyser();
@@ -3587,7 +3593,15 @@ async function startGameMic() {
       gameMicCtx = new AC();
     }
     if (gameMicCtx.state === "suspended") await gameMicCtx.resume();
-    const stream = await navigator.mediaDevices.getUserMedia({audio:true, video:false});
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: false,
+        autoGainControl: true,
+        sampleRate: 44100
+      },
+      video: false
+    });
     gameMicStream = stream;
     const src = gameMicCtx.createMediaStreamSource(stream);
     gameMicAnalyser = gameMicCtx.createAnalyser();
@@ -3650,18 +3664,21 @@ function gameMicTick() {
   const now = Date.now();
   if (now - gameMicLastTrig < 450) return;
 
-  // Find matching note on screen
+  // Find matching note on screen — only the ONE closest to hit line
   let hit = null, bestDist = 999;
   gameNotes.forEach(n => {
-    if (n.chord === best.chord && n.y > 0 && n.y < gHitY + 80) {
+    if (n.chord === best.chord && !n.hitPending && n.y > 0 && n.y < gHitY + 80) {
       const d = Math.abs(n.y - gHitY);
       if (d < bestDist) { bestDist = d; hit = n; }
     }
   });
 
   if (hit) {
-    gameMicLastTrig = now;
-    gameNotes = gameNotes.filter(n => n !== hit);
+    gameMicLastTrig = now + 400; // extra debounce after hit
+    hit.hitPending = true; // mark immediately to block double-trigger
+    setTimeout(() => {
+      gameNotes = gameNotes.filter(n => n !== hit);
+    }, 50);
     gameCombo = Math.min(gameCombo+1, 8);
     gameScore += 10 * Math.max(1, Math.floor(gameCombo/2));
     gameHits++;
