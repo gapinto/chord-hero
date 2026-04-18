@@ -3625,10 +3625,10 @@ function stopGameMic() {
 let _micCandidate = null;   // chord being "watched"
 let _micCandidateStart = 0; // when it first appeared
 let _micCandidateConf = 0;  // running confidence
-const MIC_SUSTAIN_MS  = 180; // must sustain this long before accepting
-const MIC_MIN_RMS     = 0.018; // minimum volume to even consider
-const MIC_MIN_CONF    = 0.72;  // minimum detection confidence (was 0.55)
-const MIC_COOLDOWN_MS = 900;   // full cooldown after a hit
+const MIC_SUSTAIN_MS  = 100; // must sustain this long before accepting
+const MIC_MIN_RMS     = 0.008; // minimum volume to even consider
+const MIC_MIN_CONF    = 0.52;  // minimum detection confidence (was 0.55)
+const MIC_COOLDOWN_MS = 700;   // full cooldown after a hit
 
 function gameMicTick() {
   if (!gameMicAnalyser || !gameRunning) return;
@@ -3646,7 +3646,7 @@ function gameMicTick() {
   if (lvlEl) lvlEl.style.width = Math.min(100, rms * 400) + "%";
 
   // Hard gate — below threshold, reset candidate and exit
-  if (rms < MIC_MIN_RMS) {
+  if (rms < (window._micRmsThresh || MIC_MIN_RMS)) {
     _micCandidate = null;
     const chEl = document.getElementById("g-mic-chord");
     if (chEl) { chEl.textContent = "—"; chEl.style.color = "#444"; }
@@ -3660,7 +3660,7 @@ function gameMicTick() {
   gameMicAnalyser.getFloatFrequencyData(fd);
   const f = field(gameKey);
   const {best, score} = detectChord(fd, gameMicCtx.sampleRate, gameMicAnalyser.fftSize * 2, f);
-  const conf = Math.min(1, score / 5.0); // stricter normalizer
+  const conf = Math.min(1, score / 4.0); // stricter normalizer
 
   // Update monitor
   const chEl = document.getElementById("g-mic-chord");
@@ -3672,7 +3672,7 @@ function gameMicTick() {
   }
   if (cfEl) cfEl.textContent = Math.round(conf * 100) + "%";
 
-  if (!best || conf < MIC_MIN_CONF) {
+  if (!best || conf < (window._micConfThresh || MIC_MIN_CONF)) {
     _micCandidate = null;
     return;
   }
@@ -3692,7 +3692,7 @@ function gameMicTick() {
   _micCandidateConf = Math.max(_micCandidateConf, conf);
 
   // Not sustained long enough yet
-  if (now - _micCandidateStart < MIC_SUSTAIN_MS) return;
+  if (now - _micCandidateStart < (window._micSustain || MIC_SUSTAIN_MS)) return;
 
   // ── 4. Cooldown after last hit ──────────────────────────────────
   if (now - gameMicLastTrig < MIC_COOLDOWN_MS) return;
@@ -3745,6 +3745,16 @@ let gCanvas, gCtx, gW, gH, gHitY;
 let gameMicMode=false, gameMicStream=null, gameMicAnalyser=null, gameMicCtx=null, gameMicRaf=null, gameMicLastTrig=0;
 const GCFG={1:{interval:3200,speed:0.055,hints:true,target:10},2:{interval:2200,speed:0.09,hints:false,target:15},3:{interval:1500,speed:0.13,hints:false,target:20}};
 
+function setMicSens(val) {
+  document.getElementById("mic-sens-val").textContent = val;
+  const v = parseInt(val);
+  // Map 1-10 to thresholds
+  // Higher value = more sensitive = lower thresholds
+  window._micRmsThresh  = 0.022 - (v * 0.002);   // 0.020 to 0.002
+  window._micConfThresh = 0.70  - (v * 0.04);    // 0.66 to 0.30
+  window._micSustain    = 200   - (v * 15);       // 185 to 50ms
+}
+
 function toggleGameMode() {
   gameMicMode = !gameMicMode;
   const modeBtn = document.getElementById("game-mode-btn");
@@ -3754,10 +3764,13 @@ function toggleGameMode() {
     if(modeBtn){modeBtn.style.background="#0d0d1f";modeBtn.style.color="#666";modeBtn.style.border="1px solid #ffffff15";}
     if(micBtn){micBtn.style.background="#34d39922";micBtn.style.color="#34d399";micBtn.style.border="1px solid #34d39955";}
     if(desc) desc.innerHTML="🎙 Microfone ativado ao iniciar &nbsp;<span style=\"color:#34d39988;font-size:10px\">(Safari pedirá permissão)</span>";
+    const sr=document.getElementById("mic-sens-row"); if(sr) sr.style.display="flex";
+    setMicSens(document.getElementById("mic-sens")?.value||5);
   } else {
     if(modeBtn){modeBtn.style.background="#f59e0b22";modeBtn.style.color="#f59e0b";modeBtn.style.border="1px solid #f59e0b55";}
     if(micBtn){micBtn.style.background="#0d0d1f";micBtn.style.color="#666";micBtn.style.border="1px solid #ffffff15";}
     if(desc) desc.textContent="Toque os botões na tela para acertar as notas";
+    const sr=document.getElementById("mic-sens-row"); if(sr) sr.style.display="none";
   }
 }
 
@@ -4028,6 +4041,16 @@ initCaged();
   <div id="game-mode-desc" style="font-size:11px;color:#555;text-align:center;
     padding:6px 0;margin-bottom:4px">
     Toque os botões na tela para acertar as notas
+  </div>
+  <!-- Sensitivity slider — only visible in mic mode -->
+  <div id="mic-sens-row" style="display:none;align-items:center;gap:8px;
+    padding:6px 2px">
+    <span style="font-size:10px;color:#555;flex-shrink:0">Sensibilidade</span>
+    <input type="range" id="mic-sens" min="1" max="10" value="5"
+      style="flex:1;accent-color:#34d399"
+      oninput="setMicSens(this.value)">
+    <span id="mic-sens-val" style="font-size:11px;color:#34d399;
+      flex-shrink:0;width:20px;text-align:right">5</span>
   </div>
 </div>
 
