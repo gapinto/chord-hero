@@ -1,0 +1,2544 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Gospel Chord Hero</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:#060610;color:#fff;font-family:-apple-system,sans-serif;min-height:100vh;overflow-x:hidden}
+button{cursor:pointer;font-family:-apple-system,sans-serif}
+
+/* TABS */
+.tab-bar{position:fixed;bottom:0;left:0;right:0;z-index:100;
+display:flex;background:rgba(6,6,16,.97);border-top:1px solid #ffffff10;
+padding-bottom:env(safe-area-inset-bottom,0)}
+.tab-btn{flex:1;padding:10px 4px 12px;border:none;background:transparent;
+display:flex;flex-direction:column;align-items:center;gap:3px;transition:all.15s}
+.tab-btn .tab-icon{font-size:22px;line-height:1;transition:all.2s}
+.tab-btn .tab-lbl{font-size:9px;font-weight:700;letter-spacing:1px;color:#444;transition:all.15s}
+.tab-btn.active .tab-lbl{color:var(–tc)}
+.tab-btn.active .tab-icon{filter:drop-shadow(0 0 8px var(–tc));transform:scale(1.15)}
+.tab-bar-line{position:absolute;top:0;height:2px;border-radius:2px;transition:all.3s;
+background:var(–tc);box-shadow:0 0 8px var(–tc)}
+
+.page{display:none;padding:16px 16px 90px;max-width:460px;margin:0 auto}
+.page.active{display:block}
+
+/* COMMON */
+.section{background:#0d0d1f;border-radius:18px;padding:16px;margin-bottom:14px;border:1px solid #ffffff0a}
+.section-title{font-size:10px;color:#555;letter-spacing:3px;margin-bottom:12px}
+.page-header{padding:18px 16px 14px;position:sticky;top:0;z-index:50;
+background:#060610;border-bottom:1px solid #ffffff08;margin:-16px -16px 16px}
+.page-title{font-size:32px;font-weight:900;line-height:1}
+.page-sub{font-size:11px;color:#555;margin-top:3px}
+
+/* KEYS */
+.keys{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px}
+.key-btn{padding:7px 14px;border-radius:10px;border:none;font-size:14px;
+font-weight:700;background:#0d0d1f;color:#666;transition:all.15s}
+.key-btn.active{background:#f59e0b;color:#000;box-shadow:0 0 14px #f59e0b44}
+
+/* DEGREE TABLE */
+.deg-btn{display:flex;align-items:center;justify-content:space-between;
+width:100%;padding:13px 14px;margin-bottom:7px;border-radius:13px;
+border:1px solid #ffffff0a;background:#0a0a18;text-align:left;transition:all.15s}
+.deg-btn.playing{transform:scale(1.02)}
+.deg-num{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;
+justify-content:center;font-size:15px;font-weight:900;flex-shrink:0}
+.deg-fn{font-size:12px;color:#ccc}
+.deg-feel{font-size:11px;margin-top:2px}
+.deg-chord{font-size:22px;font-weight:900;text-align:right}
+.deg-note{font-size:9px;color:#555;margin-top:1px;text-align:right}
+
+/* PROGRESSION BEATS */
+.beats{display:flex;gap:8px;margin-bottom:14px}
+.beat{flex:1;border-radius:12px;padding:12px 6px;text-align:center;
+background:#ffffff08;border:1px solid #ffffff10;transition:all.12s}
+.beat.current{border-color:var(–bc);background:color-mix(in srgb,var(–bc) 20%,transparent);
+box-shadow:0 0 18px color-mix(in srgb,var(–bc) 35%,transparent);transform:scale(1.05)}
+.beat.hit{border-color:#34d399;background:#34d39920;box-shadow:0 0 18px #34d39944}
+.beat-d{font-size:13px;font-weight:900;font-family:monospace}
+.beat-c{font-size:19px;font-weight:900}
+.beat-f{font-size:9px;color:#666;margin-top:1px}
+
+/* CONTROLS */
+.ctrl-row{display:flex;gap:10px;margin-bottom:10px}
+.btn-main{flex:2;padding:14px;border-radius:13px;border:none;font-size:16px;
+font-weight:900;letter-spacing:2px;transition:all.15s}
+.btn-main.go{background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;box-shadow:0 0 20px #f59e0b33}
+.btn-main.stop{background:#ef444418;color:#ef4444;border:1px solid #ef444433}
+.btn-sec{flex:1;padding:14px;border-radius:13px;border:1px solid #ffffff15;
+background:#ffffff08;color:#888;font-size:13px;transition:all.15s}
+.btn-sec.on{background:#34d39918;border-color:#34d39955;color:#34d399}
+.mic-info{padding:10px 14px;border-radius:10px;background:#ffffff05;
+font-size:12px;color:#555;text-align:center;min-height:36px;
+display:flex;align-items:center;justify-content:center;gap:8px}
+.mic-bar{flex:1;height:4px;border-radius:2px;background:#ffffff10;overflow:hidden;display:none}
+.mic-fill{height:100%;border-radius:2px;background:#34d399;transition:width .05s}
+
+/* SCORE */
+.score-row{display:flex;gap:10px}
+.score-card{flex:1;background:#0a0a18;border-radius:12px;padding:12px 8px;
+text-align:center;border:1px solid #ffffff08}
+.score-num{font-size:22px;font-weight:900;font-family:monospace}
+.score-lbl{font-size:9px;color:#555;margin-top:2px;letter-spacing:1px}
+
+/* CAGED */
+.shape-map{display:flex;flex-direction:column;gap:9px}
+.shape-card{border-radius:16px;padding:14px;border:1px solid #ffffff0a;
+background:#0a0a18;cursor:pointer;transition:all.2s}
+.shape-card.active{border-color:var(–sc)}
+.shape-header{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.shape-letter{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;
+justify-content:center;font-size:26px;font-weight:900;flex-shrink:0}
+.shape-frets{display:flex;gap:6px;align-items:center}
+.string-line{display:flex;align-items:center;gap:4px;margin-bottom:4px}
+.fret-box{width:34px;height:28px;border-radius:6px;display:flex;align-items:center;
+justify-content:center;font-size:11px;font-weight:700;border:1px solid #ffffff08;
+background:#ffffff05;color:#555;transition:all.2s;flex-shrink:0}
+.fret-box.root{border-color:var(–sc)}
+.fret-box.note{background:#ffffff10;color:#ccc}
+.fret-box.mute{color:#ef4444;background:transparent;border-color:transparent;font-size:13px}
+.fret-box.open{color:#ffffff55;background:transparent;border-color:transparent;font-size:16px}
+.progress-bar{background:#ffffff10;border-radius:6px;height:6px;overflow:hidden;margin-top:6px}
+.progress-fill{height:100%;border-radius:6px;transition:width.4s}
+.lock-overlay{display:flex;align-items:center;justify-content:center;
+opacity:0.35;pointer-events:none}
+
+/* EAR TRAINING */
+.level-tabs{display:flex;gap:8px;margin-bottom:16px;
+background:#0d0d1f;border-radius:13px;padding:4px}
+.level-tab{flex:1;padding:10px 4px;border-radius:10px;border:none;
+background:transparent;font-size:12px;font-weight:700;color:#555;transition:all.2s;
+display:flex;flex-direction:column;align-items:center;gap:2px}
+.level-tab.active{background:#f59e0b;color:#000}
+.play-area{background:#0a0a18;border-radius:18px;padding:20px;margin-bottom:12px;
+border:1px solid #ffffff08;text-align:center;position:relative;min-height:120px;
+display:flex;flex-direction:column;align-items:center;justify-content:center}
+.wave{display:flex;gap:3px;height:36px;align-items:center;margin-bottom:12px}
+.wave-bar{width:4px;border-radius:2px;transition:all.15s}
+.prog-opts{display:flex;flex-direction:column;gap:7px}
+.prog-opt{padding:12px 14px;border-radius:13px;border:1px solid #ffffff10;
+background:#0d0d1f;color:#aaa;font-size:13px;text-align:left;transition:all.15s;
+display:flex;justify-content:space-between;align-items:center}
+.prog-opt.correct{border-color:#34d39955;background:#34d39915;color:#34d399}
+.prog-opt.wrong{border-color:#ef444455;background:#ef444415;color:#ef4444}
+
+/* RANGE */
+.bpm-row{display:flex;align-items:center;gap:10px;margin-bottom:13px}
+.bpm-row label{font-size:11px;color:#555;flex-shrink:0}
+.bpm-row input[type=range]{flex:1;accent-color:#f59e0b}
+.bpm-val{font-size:12px;color:#f59e0b;width:54px;text-align:right;flex-shrink:0}
+
+/* PROG SELECTOR */
+.prog-list{display:flex;flex-direction:column;gap:7px;margin-bottom:14px}
+.prog-sel{padding:11px 14px;border-radius:12px;border:1px solid #ffffff10;
+background:#0d0d1f;color:#aaa;font-size:13px;text-align:left;
+display:flex;justify-content:space-between;transition:all.15s}
+.prog-sel.active{border-color:var(–pc)}
+.prog-sel-name{font-size:16px;font-weight:900;font-family:monospace}
+
+.info-card{background:#f59e0b0a;border:1px solid #f59e0b22;border-radius:13px;
+padding:12px 14px;margin-bottom:14px;font-size:12px;color:#aaa;line-height:1.8}
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+
+</head>
+<body>
+
+<!-- TAB BAR -->
+
+<div class="tab-bar" id="tabBar">
+  <button class="tab-btn active" style="--tc:#f59e0b" onclick="showTab('graus')">
+    <div class="tab-icon">🎵</div>
+    <div class="tab-lbl">GRAUS</div>
+  </button>
+  <button class="tab-btn" style="--tc:#ec4899" onclick="showTab('harmonia')">
+    <div class="tab-icon">🎙</div>
+    <div class="tab-lbl">HARMONIA</div>
+  </button>
+  <button class="tab-btn" style="--tc:#60a5fa" onclick="showTab('caged')">
+    <div class="tab-icon">🎸</div>
+    <div class="tab-lbl">CAGED</div>
+  </button>
+  <button class="tab-btn" style="--tc:#a78bfa" onclick="showTab('ouvido')">
+    <div class="tab-icon">👂</div>
+    <div class="tab-lbl">OUVIDO</div>
+  </button>
+  <button class="tab-btn" style="--tc:#34d399" onclick="showTab('jogo')">
+    <div class="tab-icon">🎮</div>
+    <div class="tab-lbl">JOGO</div>
+  </button>
+  <button class="tab-btn" style="--tc:#f472b6" onclick="showTab('musicas')">
+    <div class="tab-icon">🎤</div>
+    <div class="tab-lbl">MÚSICAS</div>
+  </button>
+  <div class="tab-bar-line" id="tabLine" style="--tc:#f59e0b;left:0;width:20%"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<!-- PAGE 1: GRAUS -->
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<div class="page active" id="page-graus">
+  <div class="page-header">
+    <div class="page-title" style="background:linear-gradient(90deg,#fbbf24,#f59e0b);-webkit-background-clip:text;-webkit-text-fill-color:transparent">
+      GRAUS<br>INSTANTÂNEOS
+    </div>
+    <div class="page-sub">Toque para ouvir · Sem contar · Só saber</div>
+  </div>
+
+  <!-- Circle of Fifths -->
+
+  <div class="section">
+    <div class="section-title">CÍRCULO DAS QUINTAS</div>
+    <div style="font-size:11px;color:#666;margin-bottom:12px">
+      Toque num tom para ver e ouvir o campo harmônico
+    </div>
+    <div id="circle-fifths" style="display:flex;justify-content:center"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">CAMPO HARMÔNICO — <span id="graus-key-label" style="color:#f59e0b">Sol (G)</span></div>
+    <div class="keys" id="graus-keys"></div>
+    <div id="graus-table"></div>
+    <div style="font-size:11px;color:#444;text-align:center;margin-top:10px">
+      💡 Toque num grau para ouvir o acorde
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<!-- PAGE 2: HARMONIA COM VIOLÃO -->
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<div class="page" id="page-harmonia">
+  <div class="page-header">
+    <div class="page-title" style="background:linear-gradient(90deg,#f472b6,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent">
+      HARMONIA<br>COM VIOLÃO
+    </div>
+    <div class="page-sub">Toque o acorde — o app reconhece</div>
+  </div>
+
+  <div class="info-card">
+    <strong style="color:#f59e0b">Como usar:</strong> Escolha tom e progressão, toque ▶ para ouvir,
+    ative 🎙 e toque cada acorde no violão quando aparecer na tela.
+    O app detecta qual acorde você tocou. ✅
+  </div>
+
+  <div class="section">
+    <div class="section-title">TOM</div>
+    <div class="keys" id="harm-keys"></div>
+    <div class="bpm-row">
+      <label>Velocidade</label>
+      <input type="range" id="harm-bpm" min="40" max="120" value="65" step="5" oninput="setBpm(this.value)">
+      <div class="bpm-val" id="harm-bpm-val">65 BPM</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">PROGRESSÃO</div>
+    <div class="prog-list" id="harm-progs"></div>
+  </div>
+
+  <div class="section">
+    <div class="beats" id="harm-beats"></div>
+    <div class="ctrl-row">
+      <button class="btn-main go" id="harm-play"
+        ontouchstart="evt(event,'togglePlay')" onclick="togglePlay()">▶ TOCAR</button>
+      <button class="btn-sec" id="harm-mic"
+        ontouchstart="evt(event,'toggleMic')" onclick="toggleMic()">🎙 Mic</button>
+    </div>
+    <div class="mic-info" id="harm-mic-info">
+      <span id="harm-mic-txt">Microfone desativado</span>
+      <div class="mic-bar" id="harm-mic-bar">
+        <div class="mic-fill" id="harm-mic-fill"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="score-row">
+    <div class="score-card">
+      <div class="score-num" id="h-det" style="color:#34d399">0</div>
+      <div class="score-lbl">ACORDES</div>
+    </div>
+    <div class="score-card">
+      <div class="score-num" id="h-str" style="color:#f59e0b">0🔥</div>
+      <div class="score-lbl">SEQUÊNCIA</div>
+    </div>
+    <div class="score-card">
+      <div class="score-num" id="h-loops" style="color:#60a5fa">0</div>
+      <div class="score-lbl">LOOPS</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<!-- PAGE 3: CAGED -->
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<div class="page" id="page-caged">
+  <div class="page-header">
+    <div class="page-title" style="background:linear-gradient(90deg,#60a5fa,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent">
+      SISTEMA<br>CAGED
+    </div>
+    <div class="page-sub">5 formas · qualquer tom · todo o braço</div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">TOM</div>
+    <div class="keys" id="caged-keys"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">FORMAS — Toque para ver no braço</div>
+    <div class="shape-map" id="caged-shapes"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<!-- PAGE 4: OUVIDO -->
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<div class="page" id="page-ouvido">
+  <div class="page-header">
+    <div class="page-title" style="background:linear-gradient(90deg,#c084fc,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent">
+      TREINO<br>DE OUVIDO
+    </div>
+    <div class="page-sub">Ouça · Identifique · Internalize</div>
+  </div>
+
+  <div class="level-tabs">
+    <button class="level-tab active" onclick="setEarLevel(1)">
+      <span>🎵</span><span style="font-size:10px">Acorde</span>
+    </button>
+    <button class="level-tab" onclick="setEarLevel(2)">
+      <span>🎶</span><span style="font-size:10px">Progressão</span>
+    </button>
+    <button class="level-tab" onclick="setEarLevel(3)">
+      <span>⚡</span><span style="font-size:10px">Reflexo</span>
+    </button>
+  </div>
+
+  <div id="ear-content"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<!-- JAVASCRIPT -->
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<script>
+// ── MUSIC THEORY ─────────────────────────────────────────────────────────────
+const CHR   = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+const KOFF  = {C:0,"C#":1,D:2,"D#":3,E:4,F:5,"F#":6,G:7,"G#":8,A:9,"A#":10,B:11,Bb:10,Eb:3,Ab:8};
+const KEYS  = ["C","G","D","A","E","F","Bb"];
+const IV    = [0,2,4,5,7,9,11];
+const TY    = ["maj","min","min","maj","maj","min","dim"];
+const FN    = ["Tônica","Subdominante","Mediante","Subdominante","Dominante","Relativa","Sensível"];
+const FEEL  = ["Repouso","Suave tensão","Cor","Preparação","Tensão","Emoção","Instabilidade"];
+const CLR   = ["#34d399","#60a5fa","#a78bfa","#60a5fa","#f59e0b","#ec4899","#ef4444"];
+const CINT  = {maj:[0,4,7],min:[0,3,7],dim:[0,3,6]};
+
+function field(key) {
+  const off = KOFF[key]||0;
+  return IV.map((iv,i)=>{
+    const r = (off+iv)%12, t = TY[i];
+    return { deg:i+1, chord:CHR[r]+(t==="maj"?"":t==="min"?"m":"°"),
+      fn:FN[i], feel:FEEL[i], color:CLR[i], type:t,
+      rootBin:r, intervals:CINT[t],
+      semis: CINT[t].map(s=>off+iv+s) };
+  });
+}
+
+const PROGS = [
+  {name:"1–5–6–4",deg:[0,4,5,3],label:"Gospel Clássico",color:"#f59e0b"},
+  {name:"2–5–1",  deg:[1,4,0],  label:"Resolução Igreja",color:"#3b82f6"},
+  {name:"1–4–5",  deg:[0,3,4],  label:"Base do Louvor",  color:"#10b981"},
+  {name:"6–4–1–5",deg:[5,3,0,4],label:"Adoração",        color:"#ec4899"},
+];
+
+// ── AUDIO ─────────────────────────────────────────────────────────────────────
+function playChord(semis, dur=1.4) {
+  try {
+    const AC = window.AudioContext||window.webkitAudioContext;
+    const ctx = new AC();
+    const go = ()=>{
+      semis.forEach((s,i)=>{
+        const freq = 440*Math.pow(2,(60+s-69)/12);
+        const o=ctx.createOscillator(), g=ctx.createGain();
+        o.type="triangle"; o.frequency.value=freq;
+        g.gain.setValueAtTime(0,ctx.currentTime);
+        g.gain.linearRampToValueAtTime(.22,ctx.currentTime+.02+i*.04);
+        g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+dur);
+        o.connect(g); g.connect(ctx.destination);
+        o.start(ctx.currentTime+i*.04);
+        o.stop(ctx.currentTime+dur+.1);
+      });
+    };
+    ctx.state==="suspended"?ctx.resume().then(go):go();
+  } catch(e){}
+}
+
+// Shared audio ctx for sequencer (reused)
+let seqCtx = null;
+function getSeqCtx() {
+  if (!seqCtx||seqCtx.state==="closed") {
+    const AC = window.AudioContext||window.webkitAudioContext;
+    seqCtx = new AC();
+  }
+  return seqCtx;
+}
+function playBeatSeq(semis) {
+  try {
+    const ctx = getSeqCtx();
+    if (ctx.state==="suspended") ctx.resume();
+    const now=ctx.currentTime, dur=(60/harmBpm)*1.8;
+    semis.forEach((s,i)=>{
+      const freq=440*Math.pow(2,(60+s-69)/12);
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.type="triangle"; o.frequency.value=freq;
+      g.gain.setValueAtTime(0,now);
+      g.gain.linearRampToValueAtTime(.16,now+.02+i*.04);
+      g.gain.exponentialRampToValueAtTime(.001,now+dur);
+      o.connect(g); g.connect(ctx.destination);
+      o.start(now+i*.04); o.stop(now+dur+.05);
+    });
+  } catch(e){}
+}
+
+// ── CHORD DETECTION ───────────────────────────────────────────────────────────
+function chromagram(fData, sr, fftSz) {
+  const ch=new Float32Array(12), bHz=sr/fftSz;
+  for (let i=1;i<fData.length;i++) {
+    const hz=i*bHz; if(hz<60||hz>1400) continue;
+    const mag=Math.pow(10,fData[i]/20);
+    const midi=Math.round(12*Math.log2(hz/440)+69);
+    ch[((midi%12)+12)%12]+=mag;
+  }
+  const mx=Math.max(...ch,.001); return ch.map(v=>v/mx);
+}
+function chordScore(root,ivs,ch) {
+  let s=0; const bins=new Set();
+  ivs.forEach((iv,i)=>{ const b=((root+iv)%12+12)%12; bins.add(b); s+=ch[b]*(i===0?2.5:1); });
+  for(let b=0;b<12;b++) if(!bins.has(b)) s-=ch[b]*.3;
+  return Math.max(0,s);
+}
+function detectChord(fData,sr,fftSz,targets) {
+  const ch=chromagram(fData,sr,fftSz);
+  let best=null,bScore=0;
+  targets.forEach(t=>{ const s=chordScore(t.rootBin,t.intervals,ch); if(s>bScore){bScore=s;best=t;} });
+  return {best,score:bScore};
+}
+
+// ── TAB NAVIGATION ────────────────────────────────────────────────────────────
+const TABS = ["graus","harmonia","caged","ouvido","jogo","musicas"];
+function showTab(id) {
+  TABS.forEach((t,i)=>{
+    document.getElementById("page-"+t).classList.toggle("active",t===id);
+    document.querySelectorAll(".tab-btn")[i].classList.toggle("active",t===id);
+  });
+  const idx = TABS.indexOf(id);
+  const line = document.getElementById("tabLine");
+  const colors = ["#f59e0b","#ec4899","#60a5fa","#a78bfa","#34d399","#f472b6"];
+  line.style.setProperty("--tc", colors[idx]);
+  line.style.left = (idx*16.66)+"%";
+  line.style.width = "16.66%";
+  if (id==="ouvido" && !earInitialized) initEar();
+}
+function evt(e, fn) { e.preventDefault(); window[fn](); }
+
+// ════════════════════════════════════════════════════════════════
+// MODULE 1: GRAUS
+// ════════════════════════════════════════════════════════════════
+let grausKey = "G";
+function initGraus() {
+  const kEl = document.getElementById("graus-keys");
+  KEYS.forEach(k=>{
+    const b=document.createElement("button");
+    b.className="key-btn"+(k===grausKey?" active":"");
+    b.textContent=k;
+    b.onclick=()=>{ grausKey=k; renderGraus(); };
+    kEl.appendChild(b);
+  });
+  renderGraus();
+}
+function renderGraus() {
+  document.querySelectorAll("#graus-keys .key-btn").forEach((b,i)=>{
+    b.classList.toggle("active",KEYS[i]===grausKey);
+  });
+  const f=field(grausKey), el=document.getElementById("graus-table");
+  el.innerHTML="";
+  f.forEach((n,i)=>{
+    const btn=document.createElement("button");
+    btn.className="deg-btn";
+    btn.style.setProperty("--c",n.color);
+    btn.innerHTML=`
+      <div style="display:flex;align-items:center;gap:11px">
+        <div class="deg-num" style="background:${n.color}22;border:1px solid ${n.color}44;color:${n.color}">${n.deg}</div>
+        <div>
+          <div class="deg-fn">${n.fn}</div>
+          <div class="deg-feel" style="color:${n.color};display:none" id="feel-${i}">${n.feel}</div>
+        </div>
+      </div>
+      <div>
+        <div class="deg-chord" style="color:${n.color}" id="chord-${i}">${n.chord}</div>
+        <div class="deg-note" id="note-${i}"></div>
+      </div>`;
+    let playing=false;
+    function play(e) {
+      if(e&&e.cancelable) e.preventDefault();
+      if(playing) return;
+      playing=true;
+      document.getElementById("feel-"+i).style.display="block";
+      document.getElementById("note-"+i).textContent="♪♪";
+      document.getElementById("note-"+i).style.color=n.color;
+      btn.classList.add("playing");
+      btn.style.background=n.color+"12";
+      btn.style.borderColor=n.color+"44";
+      playChord(n.semis);
+      setTimeout(()=>{
+        playing=false;
+        btn.classList.remove("playing");
+        btn.style.background="";
+        btn.style.borderColor="";
+        document.getElementById("note-"+i).textContent="";
+      },1600);
+    }
+    btn.addEventListener("touchstart",play,{passive:false});
+    btn.addEventListener("click",play);
+    el.appendChild(btn);
+  });
+}
+
+// ════════════════════════════════════════════════════════════════
+// MODULE 2: HARMONIA COM VIOLÃO
+// ════════════════════════════════════════════════════════════════
+let harmKey="G", harmProg=PROGS[0], harmBpm=65;
+let harmPlaying=false, harmStep=0, harmLoop=0, harmTimer=null;
+let harmDet=0, harmStr=0, harmLastDet=-1;
+let micOn=false, micStream=null, micAnalyser=null, micRaf=null;
+let lastTrig=0;
+
+function initHarm() {
+  // Keys
+  const kEl=document.getElementById("harm-keys");
+  KEYS.forEach(k=>{
+    const b=document.createElement("button");
+    b.className="key-btn"+(k===harmKey?" active":"");
+    b.textContent=k;
+    b.onclick=()=>{
+      if(harmPlaying) stopPlay();
+      harmKey=k;
+      document.querySelectorAll("#harm-keys .key-btn").forEach((x,i)=>x.classList.toggle("active",KEYS[i]===k));
+      renderHarmProgs(); renderHarmBeats();
+    };
+    kEl.appendChild(b);
+  });
+  renderHarmProgs(); renderHarmBeats();
+}
+function setBpm(v) {
+  harmBpm=parseInt(v);
+  document.getElementById("harm-bpm-val").textContent=v+" BPM";
+}
+function renderHarmProgs() {
+  const el=document.getElementById("harm-progs"); el.innerHTML="";
+  PROGS.forEach(p=>{
+    const f=field(harmKey);
+    const b=document.createElement("button");
+    b.className="prog-sel"+(p===harmProg?" active":"");
+    b.style.setProperty("--pc",p.color);
+    b.innerHTML=`<div><span class="prog-sel-name" style="color:${p.color}">${p.name}</span>&nbsp;${p.label}</div>
+      <div style="font-size:11px;color:#555">${p.deg.map(d=>f[d].chord).join("→")}</div>`;
+    b.onclick=()=>{ if(harmPlaying)stopPlay(); harmProg=p; renderHarmProgs(); renderHarmBeats(); };
+    el.appendChild(b);
+  });
+}
+function renderHarmBeats() {
+  const el=document.getElementById("harm-beats"); el.innerHTML="";
+  const f=field(harmKey);
+  harmProg.deg.forEach((di,i)=>{
+    const n=f[di], d=document.createElement("div");
+    d.className="beat"; d.id="beat-"+i;
+    d.style.setProperty("--bc",n.color);
+    d.innerHTML=`<div class="beat-d" style="color:#333">${n.deg}</div>
+      <div class="beat-c" style="color:#555">${n.chord}</div>
+      <div class="beat-f">${n.fn.split("–")[0].trim()}</div>`;
+    el.appendChild(d);
+  });
+}
+function setCurrentBeat(idx, isHit) {
+  harmProg.deg.forEach((_,i)=>{
+    const b=document.getElementById("beat-"+i);
+    if(!b) return;
+    b.classList.remove("current","hit");
+    const f=field(harmKey), n=f[harmProg.deg[i]];
+    b.querySelector(".beat-c").style.color="#555";
+    b.querySelector(".beat-d").style.color="#333";
+    if(isHit && i===idx) { b.classList.add("hit"); }
+    else if(!isHit && i===idx) {
+      b.classList.add("current");
+      b.querySelector(".beat-c").style.color=n.color;
+      b.querySelector(".beat-d").style.color=n.color;
+    }
+  });
+}
+function tick() {
+  if(!harmPlaying) return;
+  const f=field(harmKey), di=harmProg.deg[harmStep];
+  setCurrentBeat(harmStep, false);
+  playBeatSeq(f[di].semis);
+  harmStep++;
+  if(harmStep>=harmProg.deg.length){
+    harmStep=0; harmLoop++;
+    document.getElementById("h-loops").textContent=harmLoop;
+  }
+  harmTimer=setTimeout(tick,(60/harmBpm)*2*1000);
+}
+function togglePlay() {
+  if(harmPlaying) { stopPlay(); return; }
+  try {
+    const AC=window.AudioContext||window.webkitAudioContext;
+    seqCtx=new AC();
+    if(seqCtx.state==="suspended") seqCtx.resume();
+  } catch(e){}
+  harmPlaying=true; harmStep=0; harmLoop=0; harmDet=0; harmStr=0; harmLastDet=-1;
+  document.getElementById("h-det").textContent="0";
+  document.getElementById("h-str").textContent="0🔥";
+  document.getElementById("h-loops").textContent="0";
+  const pb=document.getElementById("harm-play");
+  pb.className="btn-main stop"; pb.textContent="■ PARAR";
+  tick();
+}
+function stopPlay() {
+  harmPlaying=false; clearTimeout(harmTimer);
+  harmStep=0; setCurrentBeat(-1,false);
+  const pb=document.getElementById("harm-play");
+  pb.className="btn-main go"; pb.textContent="▶ TOCAR";
+}
+async function toggleMic() {
+  if(micOn){ stopMic(); return; }
+  try {
+    if(!seqCtx||seqCtx.state==="closed"){
+      const AC=window.AudioContext||window.webkitAudioContext;
+      seqCtx=new AC();
+    }
+    if(seqCtx.state==="suspended") await seqCtx.resume();
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+    micStream=stream;
+    const src=seqCtx.createMediaStreamSource(stream);
+    micAnalyser=seqCtx.createAnalyser();
+    micAnalyser.fftSize=8192;
+    micAnalyser.smoothingTimeConstant=0.5;
+    src.connect(micAnalyser);
+    micOn=true;
+    document.getElementById("harm-mic").className="btn-sec on";
+    document.getElementById("harm-mic").textContent="🎙 Ouvindo";
+    document.getElementById("harm-mic-txt").textContent="🎙 Ouvindo...";
+    document.getElementById("harm-mic-bar").style.display="flex";
+    micLoop();
+  } catch(e) {
+    document.getElementById("harm-mic-txt").textContent="❌ Permite o microfone no Safari";
+  }
+}
+function stopMic() {
+  cancelAnimationFrame(micRaf);
+  micStream&&micStream.getTracks().forEach(t=>t.stop());
+  micAnalyser=null; micStream=null; micOn=false;
+  document.getElementById("harm-mic").className="btn-sec";
+  document.getElementById("harm-mic").textContent="🎙 Mic";
+  document.getElementById("harm-mic-txt").textContent="Microfone desativado";
+  document.getElementById("harm-mic-bar").style.display="none";
+}
+function micLoop() {
+  if(!micAnalyser) return;
+  micRaf=requestAnimationFrame(micLoop);
+  const td=new Float32Array(micAnalyser.fftSize);
+  micAnalyser.getFloatTimeDomainData(td);
+  let rms=0; for(let i=0;i<td.length;i++) rms+=td[i]*td[i];
+  rms=Math.sqrt(rms/td.length);
+  document.getElementById("harm-mic-fill").style.width=Math.min(100,rms*500)+"%";
+  if(rms<0.008) return;
+  const fd=new Float32Array(micAnalyser.frequencyBinCount);
+  micAnalyser.getFloatFrequencyData(fd);
+  const sr=seqCtx.sampleRate;
+  const f=field(harmKey);
+  const {best,score}=detectChord(fd,sr,micAnalyser.fftSize*2,f);
+  const conf=Math.min(1,score/4.5);
+  if(conf>0.2&&best){
+    document.getElementById("harm-mic-txt").innerHTML=
+      `<span style="color:${conf>.6?"#34d399":conf>.4?"#f59e0b":"#888"}">🎸 ${best.chord}</span>
+       <span style="color:#333;font-size:10px">${Math.round(conf*100)}%</span>`;
+  } else {
+    document.getElementById("harm-mic-txt").textContent="🎙 Ouvindo...";
+  }
+  if(conf<0.55||!harmPlaying) return;
+  const now=Date.now(); if(now-lastTrig<400) return;
+  const curStep=(harmStep-1+harmProg.deg.length)%harmProg.deg.length;
+  const curNote=f[harmProg.deg[curStep]];
+  const key=curStep+harmLoop*harmProg.deg.length;
+  if(best&&best.chord===curNote.chord&&harmLastDet!==key){
+    lastTrig=now; harmLastDet=key;
+    setCurrentBeat(curStep,true);
+    setTimeout(()=>setCurrentBeat(curStep,false),600);
+    harmDet++; harmStr++;
+    document.getElementById("h-det").textContent=harmDet;
+    document.getElementById("h-str").textContent=harmStr+"🔥";
+    document.getElementById("harm-mic-txt").textContent=`✅ ${curNote.chord} — grau ${curNote.deg}!`;
+    setTimeout(()=>{ if(micOn) document.getElementById("harm-mic-txt").textContent="🎙 Ouvindo..."; },1200);
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+// MODULE 3: CAGED
+// ════════════════════════════════════════════════════════════════
+const SHAPES = {
+  C:{name:"Forma C",color:"#34d399",rootStr:1,
+    fingers:[
+      {s:0,fo:null,mute:true},{s:1,fo:3,f:3,r:"root"},{s:2,fo:2,f:2,r:"5th"},
+      {s:3,fo:0,open:true,r:"3rd"},{s:4,fo:1,f:1,r:"root"},{s:5,fo:0,open:true,r:"5th"}]},
+  A:{name:"Forma A",color:"#60a5fa",rootStr:1,barre:{fo:0,fs:1,ts:5},
+    fingers:[
+      {s:0,fo:null,mute:true},{s:1,fo:0,f:1,r:"root",barre:true},{s:2,fo:2,f:2,r:"5th"},
+      {s:3,fo:2,f:3,r:"root"},{s:4,fo:2,f:4,r:"3rd"},{s:5,fo:0,f:1,r:"5th",barre:true}]},
+  G:{name:"Forma G",color:"#f59e0b",rootStr:0,
+    fingers:[
+      {s:0,fo:3,f:2,r:"root"},{s:1,fo:2,f:1,r:"5th"},{s:2,fo:0,open:true,r:"root"},
+      {s:3,fo:0,open:true,r:"3rd"},{s:4,fo:0,open:true,r:"5th"},{s:5,fo:3,f:3,r:"root"}]},
+  E:{name:"Forma E",color:"#a78bfa",rootStr:0,barre:{fo:0,fs:0,ts:5},
+    fingers:[
+      {s:0,fo:0,f:1,r:"root",barre:true},{s:1,fo:2,f:3,r:"5th"},{s:2,fo:2,f:4,r:"root"},
+      {s:3,fo:1,f:2,r:"3rd"},{s:4,fo:0,f:1,r:"5th",barre:true},{s:5,fo:0,f:1,r:"root",barre:true}]},
+  D:{name:"Forma D",color:"#f472b6",rootStr:2,
+    fingers:[
+      {s:0,fo:null,mute:true},{s:1,fo:null,mute:true},{s:2,fo:0,open:true,r:"root"},
+      {s:3,fo:2,f:1,r:"5th"},{s:4,fo:3,f:3,r:"root"},{s:5,fo:2,f:2,r:"3rd"}]},
+};
+const SHAPE_ORDER=["C","A","G","E","D"];
+const SHAPE_ROOT={C:{si:1,of:3},A:{si:1,of:0},G:{si:0,of:3},E:{si:0,of:0},D:{si:2,of:0}};
+const OPEN_SEMI=[4,9,14,19,23,28];
+const STRINGS_LBL=["E","A","D","G","B","e"];
+const FNAMES=["","Indicador","Médio","Anelar","Mindinho"];
+const FCOLORS=["","#ef4444","#f59e0b","#34d399","#60a5fa"];
+
+function getBase(shape,key){
+  const{si,of}=SHAPE_ROOT[shape];
+  const openNote=CHR[OPEN_SEMI[si]%12];
+  const diff=(KOFF[key]||0)-(KOFF[openNote]||0);
+  let b=((diff+12)%12)-of; if(b<0)b+=12; return b;
+}
+
+let cagedKey="G";
+function initCaged(){
+  const kEl=document.getElementById("caged-keys");
+  KEYS.forEach(k=>{
+    const b=document.createElement("button");
+    b.className="key-btn"+(k===cagedKey?" active":"");
+    b.textContent=k;
+    b.onclick=()=>{ cagedKey=k;
+      document.querySelectorAll("#caged-keys .key-btn").forEach((x,i)=>x.classList.toggle("active",KEYS[i]===k));
+      renderCaged();
+    };
+    kEl.appendChild(b);
+  });
+  renderCaged();
+}
+
+function renderCaged(){
+  const el=document.getElementById("caged-shapes");
+  el.innerHTML="";
+  SHAPE_ORDER.forEach(sn=>{
+    const sh=SHAPES[sn], base=getBase(sn,cagedKey);
+    const card=document.createElement("div");
+    card.className="shape-card";
+    card.style.setProperty("--sc",sh.color);
+    card.style.borderColor=sh.color+"22";
+
+    // Header
+    card.innerHTML=`
+      <div class="shape-header">
+        <div class="shape-letter" style="background:${sh.color}18;border:1px solid ${sh.color}44;color:${sh.color}">${sn}</div>
+        <div style="flex:1">
+          <div style="font-size:16px;font-weight:700;color:${sh.color}">${sh.name}</div>
+          <div style="font-size:11px;color:#666;margin-top:2px">${base===0?"Posição aberta":base+"ª casa"}</div>
+        </div>
+        <button onclick="playCagedChord('${sn}')"
+          ontouchstart="this.ontouchstart=null;playCagedChord('${sn}')"
+          style="padding:8px 12px;border-radius:10px;border:none;background:${sh.color}22;
+          color:${sh.color};font-size:12px;font-weight:700;cursor:pointer">
+          ♪ Ouvir
+        </button>
+      </div>
+      <div id="fb-${sn}" style="overflow-x:auto"></div>`;
+
+    el.appendChild(card);
+    // Draw D3 fretboard into fb-{sn}
+    drawD3Fretboard(sn, base, sh);
+
+    // Finger legend
+    const leg=document.createElement("div");
+    leg.style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;padding:0 2px";
+    sh.fingers.filter(f=>!f.mute&&!f.open&&f.fo!==null&&!f.barre).forEach(f=>{
+      const isR=f.r==="root";
+      const item=document.createElement("div");
+      item.style="display:flex;align-items:center;gap:5px";
+      item.innerHTML=`
+        <div style="width:20px;height:20px;border-radius:50%;
+          background:${isR?sh.color:"#1a1a2e"};
+          border:2px solid ${isR?sh.color:FCOLORS[f.f]};
+          display:flex;align-items:center;justify-content:center;
+          font-size:9px;font-weight:900;color:${isR?"#000":FCOLORS[f.f]}">
+          ${isR?"R":f.f}
+        </div>
+        <span style="font-size:10px;color:#777">${STRINGS_LBL[f.s]}·${FNAMES[f.f]}</span>`;
+      leg.appendChild(item);
+    });
+    card.appendChild(leg);
+  });
+}
+
+function drawD3Fretboard(sn, base, sh) {
+  const container = d3.select("#fb-"+sn);
+  container.selectAll("*").remove();
+
+  const SHOW=5, SS=30, FS=48, PL=28, PT=16, DR=12;
+  const W=PL+SHOW*FS+14, H=PT+5*SS+22;
+  const start=base===0?0:Math.max(1,base);
+
+  const svg = container.append("svg")
+    .attr("width", W).attr("height", H)
+    .style("display","block").style("overflow","visible");
+
+  // String labels
+  STRINGS_LBL.forEach((s,si)=>{
+    svg.append("text")
+      .attr("x",10).attr("y",PT+si*SS+4)
+      .attr("font-size",9).attr("fill","#444")
+      .attr("text-anchor","middle")
+      .attr("font-family","-apple-system,sans-serif")
+      .attr("font-weight","700")
+      .text(s);
+  });
+
+  // Nut or position marker
+  if(start===0){
+    svg.append("rect")
+      .attr("x",PL).attr("y",PT).attr("width",3).attr("height",5*SS)
+      .attr("fill","#fff").attr("rx",1);
+  } else {
+    svg.append("text")
+      .attr("x",PL-10).attr("y",PT+2.5*SS+4)
+      .attr("font-size",10).attr("fill","#888")
+      .attr("text-anchor","middle")
+      .text(start);
+  }
+
+  // Fret lines
+  d3.range(SHOW+1).forEach(fi=>{
+    svg.append("line")
+      .attr("x1",PL+fi*FS).attr("y1",PT)
+      .attr("x2",PL+fi*FS).attr("y2",PT+5*SS)
+      .attr("stroke","#ffffff12").attr("stroke-width",1);
+  });
+
+  // String lines with varying thickness
+  const strW=[2.2,1.8,1.4,1.1,0.9,0.8];
+  d3.range(6).forEach(si=>{
+    svg.append("line")
+      .attr("x1",PL).attr("y1",PT+si*SS)
+      .attr("x2",PL+SHOW*FS).attr("y2",PT+si*SS)
+      .attr("stroke","#ffffff35").attr("stroke-width",strW[si]);
+  });
+
+  // Barre bar (D3 animated)
+  if(sh.barre && base>0){
+    const by=PT+sh.barre.fs*SS;
+    const bh=(sh.barre.ts-sh.barre.fs)*SS;
+    svg.append("rect")
+      .attr("x", PL+sh.barre.fo*FS-DR)
+      .attr("y", by)
+      .attr("width", DR*2)
+      .attr("height", 0)        // start at 0 for animation
+      .attr("rx", DR)
+      .attr("fill", sh.color)
+      .attr("opacity", 0.85)
+      .style("filter",`drop-shadow(0 0 8px ${sh.color}88)`)
+      .transition().duration(400).ease(d3.easeCubicOut)
+      .attr("height", bh);
+  }
+
+  // Finger dots with D3 enter animation
+  const dots = sh.fingers.filter(f=>!f.mute&&!f.open&&f.fo!==null&&!f.barre);
+  const dotG = svg.selectAll(".dot").data(dots).enter().append("g").attr("class","dot");
+
+  const cx = d => PL+d.fo*FS-FS/2;
+  const cy = d => PT+d.s*SS;
+
+  // Circle — animate from 0 radius
+  dotG.append("circle")
+    .attr("cx", cx).attr("cy", cy)
+    .attr("r", 0)
+    .attr("fill", d => d.r==="root" ? sh.color : "#1a1a2e")
+    .attr("stroke", d => d.r==="root" ? sh.color : FCOLORS[d.f]||sh.color)
+    .attr("stroke-width", d => d.r==="root" ? 0 : 2)
+    .style("filter", d => d.r==="root" ? `drop-shadow(0 0 7px ${sh.color}aa)` : "none")
+    .transition().duration(350).ease(d3.easeBackOut.overshoot(1.4))
+    .attr("r", DR);
+
+  // Label — fade in
+  dotG.append("text")
+    .attr("x", cx).attr("y", d => cy(d)+4)
+    .attr("font-size", 11).attr("font-weight","900")
+    .attr("font-family","-apple-system,sans-serif")
+    .attr("text-anchor","middle")
+    .attr("fill", d => d.r==="root" ? "#000" : FCOLORS[d.f]||sh.color)
+    .attr("opacity", 0)
+    .text(d => d.r==="root" ? "R" : d.f)
+    .transition().delay(200).duration(300)
+    .attr("opacity", 1);
+
+  // Mute / open markers
+  sh.fingers.forEach(f=>{
+    if(f.mute){
+      svg.append("text")
+        .attr("x",PL-11).attr("y",PT+f.s*SS+4)
+        .attr("font-size",12).attr("fill","#ef4444")
+        .attr("text-anchor","middle").attr("font-weight","700").text("✕");
+    } else if(f.open){
+      svg.append("text")
+        .attr("x",PL-11).attr("y",PT+f.s*SS+4)
+        .attr("font-size",14).attr("fill","#ffffff44")
+        .attr("text-anchor","middle").text("○");
+    }
+  });
+
+  // Fret numbers
+  d3.range(SHOW).forEach(fi=>{
+    if(start+fi>0){
+      svg.append("text")
+        .attr("x",PL+fi*FS+FS/2-FS).attr("y",H-3)
+        .attr("font-size",7).attr("fill","#333")
+        .attr("text-anchor","middle")
+        .text((start+fi)+"ª");
+    }
+  });
+}
+
+function playCagedChord(sn){
+  const sh=SHAPES[sn], f=field(cagedKey);
+  // Find which degree this shape's root maps to
+  const base=getBase(sn,cagedKey);
+  const rootSi=SHAPE_ROOT[sn].si;
+  // semis from the field: use tonic chord
+  playChord(f[0].semis);
+}
+
+// ════════════════════════════════════════════════════════════════
+// MODULE 4: EAR TRAINING
+// ════════════════════════════════════════════════════════════════
+let earLevel=1, earInitialized=false;
+let earKey="C", earField=field("C");
+let earCurrent=null, earAnswer=null;
+let earPlaying=false, earActiveBeat=-1;
+let earCurrentProg=PROGS[0], earProgTimer=null, earProgStep=0;
+let earScore={right:0,wrong:0,streak:0};
+let reflexTimer=null, reflexTimeLeft=4, reflexAnswer=null, reflexQuestion=null;
+let reflexOptions=[], reflexScore={right:0,wrong:0,streak:0};
+
+function initEar() {
+  earInitialized=true;
+  renderEarLevel();
+}
+function setEarLevel(n) {
+  earLevel=n;
+  document.querySelectorAll(".level-tab").forEach((t,i)=>t.classList.toggle("active",i===n-1));
+  if(earPlaying){ clearTimeout(earProgTimer); earPlaying=false; }
+  clearInterval(reflexTimer);
+  renderEarLevel();
+}
+function renderEarLevel() {
+  const el=document.getElementById("ear-content"); el.innerHTML="";
+  if(earLevel===1) renderEar1(el);
+  else if(earLevel===2) renderEar2(el);
+  else renderEar3(el);
+}
+
+// ─ Level 1: Chord recognition ─
+function renderEar1(el) {
+  earField=field("C"); earAnswer=null; earCurrent=null;
+  el.innerHTML=`
+    <div class="section">
+      <div class="section-title">NÍVEL 1 — RECONHEÇA O ACORDE</div>
+      <div style="font-size:12px;color:#888;margin-bottom:14px;line-height:1.7">
+        Ouça o acorde sintetizado e identifique o grau harmônico.
+      </div>
+      <div class="play-area" id="e1-area">
+        <div style="font-size:32px;margin-bottom:10px">🎵</div>
+        <div style="font-size:13px;color:#888">Toque para ouvir um acorde</div>
+      </div>
+      <button class="btn-main go" style="width:100%;margin-bottom:12px"
+        ontouchstart="evt(event,'e1Play')" onclick="e1Play()">▶ TOCAR ACORDE</button>
+      <button style="width:100%;padding:10px;border-radius:11px;border:1px solid #ffffff15;
+        background:transparent;color:#666;font-size:12px;margin-bottom:14px"
+        ontouchstart="evt(event,'e1Replay')" onclick="e1Replay()" id="e1-replay">
+        🔁 Ouvir de novo
+      </button>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:7px" id="e1-btns"></div>
+      <div style="display:flex;justify-content:space-between;margin-top:12px;font-size:11px;color:#555">
+        <span>✅ ${earScore.right} acertos</span>
+        <span>🔥 ${earScore.streak} sequência</span>
+        <span>❌ ${earScore.wrong} erros</span>
+      </div>
+    </div>`;
+  render1Buttons();
+}
+function render1Buttons() {
+  const el=document.getElementById("e1-btns"); if(!el) return;
+  el.innerHTML="";
+  earField.forEach(n=>{
+    const b=document.createElement("button");
+    let bg="#0d0d1f", border="1px solid #ffffff10", color=n.color;
+    if(earAnswer!==null){
+      if(n.deg===earCurrent.deg){ bg=n.color+"22"; border=`2px solid ${n.color}`; }
+      if(n.deg===earAnswer&&n.deg!==earCurrent.deg){ bg="#ef444420"; border="2px solid #ef4444"; color="#ef4444"; }
+    }
+    b.style.cssText=`padding:12px 4px;border-radius:11px;border:${border};background:${bg};
+      color:${color};font-weight:900;font-size:18px;transition:all.15s`;
+    b.innerHTML=`<div>${n.deg}</div><div style="font-size:9px;opacity:.7;font-family:-apple-system">${n.chord}</div>`;
+    b.onclick=()=>e1Answer(n.deg);
+    el.appendChild(b);
+  });
+  if(earAnswer!==null){
+    const next=document.createElement("button");
+    next.style.cssText=`padding:12px 4px;border-radius:11px;border:none;
+      background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;
+      font-weight:900;font-size:14px;grid-column:span 2;margin-top:6px`;
+    next.textContent="PRÓXIMO →";
+    next.ontouchstart=(e)=>{e.preventDefault();e1Play();};
+    next.onclick=e1Play;
+    document.getElementById("e1-btns").appendChild(next);
+  }
+}
+function e1Play() {
+  const pool=earField;
+  earCurrent=pool[Math.floor(Math.random()*pool.length)];
+  earAnswer=null;
+  const area=document.getElementById("e1-area");
+  if(area) area.innerHTML=`
+    <div style="font-size:11px;color:#888;margin-bottom:6px">Qual é o grau?</div>
+    <div style="display:flex;gap:4px;height:32px;align-items:center;margin-bottom:8px">
+      ${[...Array(6)].map((_,i)=>`<div style="width:4px;border-radius:2px;background:#f59e0b;
+        height:${16+Math.sin(i*.8)*12}px;animation:none"></div>`).join("")}
+    </div>
+    <div style="font-size:12px;color:#aaa">🎵 Ouça e identifique</div>`;
+  playChord(earCurrent.semis);
+  render1Buttons();
+}
+function e1Replay() {
+  if(earCurrent) playChord(earCurrent.semis);
+}
+function e1Answer(deg) {
+  if(earAnswer!==null||!earCurrent) return;
+  earAnswer=deg;
+  const correct=deg===earCurrent.deg;
+  if(correct){ earScore.right++; earScore.streak++; }
+  else { earScore.wrong++; earScore.streak=0; }
+  const area=document.getElementById("e1-area");
+  if(area) area.innerHTML=`
+    <div style="font-size:28px;margin-bottom:6px">${correct?"🎉":"😅"}</div>
+    <div style="font-size:16px;font-weight:700;color:${correct?"#34d399":"#ef4444"};margin-bottom:4px">
+      ${correct?"Correto!":("Era o grau "+earCurrent.deg+" — "+earCurrent.chord)}</div>
+    <div style="font-size:12px;color:#888">${earCurrent.fn} · ${earCurrent.feel}</div>`;
+  render1Buttons();
+}
+
+// ─ Level 2: Progression recognition ─
+function renderEar2(el) {
+  earPlaying=false; earAnswer=null;
+  el.innerHTML=`
+    <div class="section">
+      <div class="section-title">NÍVEL 2 — IDENTIFIQUE A PROGRESSÃO</div>
+      <div style="font-size:12px;color:#888;margin-bottom:14px;line-height:1.7">
+        Ouça a progressão e identifique qual é. Os acordes acendem enquanto tocam.
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:14px" id="e2-beats"></div>
+      <div class="play-area" id="e2-area" style="min-height:80px">
+        <div style="font-size:13px;color:#888">Toque para ouvir uma progressão</div>
+      </div>
+      <button class="btn-main go" style="width:100%;margin-bottom:10px"
+        ontouchstart="evt(event,'e2Play')" onclick="e2Play()">▶ TOCAR PROGRESSÃO</button>
+      <button style="width:100%;padding:10px;border-radius:11px;border:1px solid #ffffff15;
+        background:transparent;color:#666;font-size:12px;margin-bottom:14px"
+        ontouchstart="evt(event,'e2Replay')" onclick="e2Replay()">
+        🔁 Ouvir de novo
+      </button>
+      <div class="prog-opts" id="e2-opts"></div>
+      <div style="display:flex;justify-content:space-between;margin-top:10px;font-size:11px;color:#555">
+        <span>✅ ${earScore.right}</span><span>🔥 ${earScore.streak}</span><span>❌ ${earScore.wrong}</span>
+      </div>
+    </div>`;
+  render2Beats(-1); render2Opts();
+}
+function render2Beats(active) {
+  const el=document.getElementById("e2-beats"); if(!el||!earCurrentProg) return;
+  el.innerHTML="";
+  earCurrentProg.deg.forEach((di,i)=>{
+    const n=earField[di], d=document.createElement("div");
+    d.className="beat"+(i===active?" current":"");
+    d.style.setProperty("--bc",n.color);
+    d.innerHTML=`<div class="beat-d" style="color:${i===active?n.color:"#333"}">${n.deg}</div>
+      <div class="beat-c" style="color:${i===active?n.color:"#555"}">${earAnswer!==null?n.chord:"?"}</div>
+      <div class="beat-f">${n.fn.split("–")[0].trim()}</div>`;
+    el.appendChild(d);
+  });
+}
+function render2Opts() {
+  const el=document.getElementById("e2-opts"); if(!el) return; el.innerHTML="";
+  PROGS.forEach(p=>{
+    const b=document.createElement("button");
+    let cls="prog-opt";
+    if(earAnswer!==null){
+      if(p===earCurrentProg) cls+=" correct";
+      else if(p.name===earAnswer) cls+=" wrong";
+    }
+    b.className=cls;
+    b.innerHTML=`<div><span style="color:${p.color};font-size:16px;font-weight:900;font-family:monospace">${p.name}</span>
+      &nbsp;${p.label}</div><span style="font-size:11px;color:#555">${p.color}</span>`;
+    b.onclick=()=>e2Answer(p);
+    el.appendChild(b);
+  });
+  if(earAnswer!==null){
+    const next=document.createElement("button");
+    next.className="btn-main go";
+    next.style.cssText="width:100%;margin-top:10px";
+    next.textContent="PRÓXIMA →";
+    next.ontouchstart=(e)=>{e.preventDefault();e2Play();};
+    next.onclick=e2Play;
+    el.appendChild(next);
+  }
+}
+function e2Play() {
+  earCurrentProg=PROGS[Math.floor(Math.random()*PROGS.length)];
+  earAnswer=null; earActiveBeat=-1;
+  const area=document.getElementById("e2-area");
+  if(area) area.innerHTML=`<div style="font-size:12px;color:#aaa">🎵 Tocando...</div>`;
+  render2Beats(-1); render2Opts();
+  // Play with beat animation
+  const f=field("C");
+  let step=0;
+  function playStep(){
+    if(step>=earCurrentProg.deg.length){
+      setTimeout(()=>render2Beats(-1),200);
+      return;
+    }
+    render2Beats(step);
+    playChord(f[earCurrentProg.deg[step]].semis, 1.2);
+    step++;
+    setTimeout(playStep,(60/72)*2*1000);
+  }
+  playStep();
+}
+function e2Replay(){ e2Play(); }
+function e2Answer(prog) {
+  if(earAnswer!==null) return;
+  earAnswer=prog.name;
+  const correct=prog===earCurrentProg;
+  if(correct){ earScore.right++; earScore.streak++; }
+  else { earScore.wrong++; earScore.streak=0; }
+  const area=document.getElementById("e2-area");
+  if(area) area.innerHTML=`
+    <div style="font-size:28px;margin-bottom:4px">${correct?"🎉":"😅"}</div>
+    <div style="font-size:15px;font-weight:700;color:${correct?"#34d399":"#ef4444"}">
+      ${correct?"Correto!":"Era "+earCurrentProg.name}</div>
+    <div style="font-size:11px;color:#888;margin-top:2px">${earCurrentProg.label}</div>`;
+  render2Beats(-1); render2Opts();
+}
+
+// ─ Level 3: Reflex ─
+function renderEar3(el) {
+  reflexAnswer=null; reflexQuestion=null;
+  el.innerHTML=`
+    <div class="section">
+      <div class="section-title">NÍVEL 3 — JOGO DE REFLEXO</div>
+      <div style="font-size:12px;color:#888;margin-bottom:14px;line-height:1.7">
+        Tom + Grau aparece na tela. Toque o acorde certo em 4 segundos.
+        Sem contar. Só saber.
+      </div>
+      <div id="e3-game"></div>
+    </div>`;
+  renderReflex();
+}
+function renderReflex() {
+  const el=document.getElementById("e3-game"); if(!el) return;
+  if(!reflexQuestion){
+    el.innerHTML=`
+      <button class="btn-main go" style="width:100%"
+        ontouchstart="evt(event,'startReflex')" onclick="startReflex()">▶ COMEÇAR</button>
+      <div style="margin-top:12px;display:flex;justify-content:space-between;font-size:11px;color:#555">
+        <span>✅ ${reflexScore.right}</span>
+        <span>🔥 ${reflexScore.streak}</span>
+        <span>❌ ${reflexScore.wrong}</span>
+      </div>`;
+    return;
+  }
+  const {deg, key, options, f} = reflexQuestion;
+  const note=f[deg-1];
+  const pct=(reflexTimeLeft/4)*100;
+  const tc=pct>60?"#34d399":pct>30?"#f59e0b":"#ef4444";
+  el.innerHTML=`
+    <div style="background:#0a0a18;border-radius:16px;padding:20px;margin-bottom:14px;text-align:center;border:1px solid #ffffff08">
+      <div style="display:inline-block;padding:4px 14px;border-radius:20px;
+        background:${note.color}22;border:1px solid ${note.color}44;
+        font-size:11px;color:${note.color};font-weight:700;margin-bottom:10px">
+        ${note.fn}
+      </div>
+      <div style="font-size:14px;color:#888;margin-bottom:4px">Tom <strong style="color:#fff;font-size:20px">${key}</strong></div>
+      <div style="font-size:14px;color:#aaa;margin-bottom:10px">
+        Qual é o grau <span style="font-size:32px;font-weight:900;color:${note.color};font-family:monospace">${deg}</span>?
+      </div>
+      <div style="font-size:26px;font-weight:900;color:${tc};font-family:monospace">${reflexTimeLeft.toFixed(1)}s</div>
+      <div style="background:#ffffff10;border-radius:4px;height:5px;margin-top:8px;overflow:hidden">
+        <div style="height:100%;border-radius:4px;background:${tc};width:${pct}%;transition:width.1s"></div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px">
+      ${options.map(opt=>{
+        const n=f.find(x=>x.chord===opt);
+        let bg="#0d0d1f", border="1px solid #ffffff12", color="#ccc";
+        if(reflexAnswer!==null){
+          if(opt===note.chord){ bg=n.color+"22"; border=`2px solid ${n.color}`; color=n.color; }
+          else if(opt===reflexAnswer){ bg="#ef444420"; border="2px solid #ef4444"; color="#ef4444"; }
+        }
+        return `<button onclick="reflexAns('${opt}')"
+          ontouchstart="this.ontouchstart=null;reflexAns('${opt}')"
+          style="padding:14px 8px;border-radius:12px;border:${border};background:${bg};color:${color};
+            font-size:22px;font-weight:900;font-family:monospace;transition:all.1s">
+          ${opt}<div style="font-size:9px;opacity:.6;font-family:-apple-system;margin-top:2px">
+          ${n?n.fn.split("–")[0].trim():""}</div></button>`;
+      }).join("")}
+    </div>
+    ${reflexAnswer!==null?`<button class="btn-main go" style="width:100%;margin-top:10px"
+      ontouchstart="evt(event,'startReflex')" onclick="startReflex()">PRÓXIMA →</button>`:""}
+    <div style="display:flex;justify-content:space-between;margin-top:10px;font-size:11px;color:#555">
+      <span>✅ ${reflexScore.right}</span><span>🔥 ${reflexScore.streak}</span><span>❌ ${reflexScore.wrong}</span>
+    </div>`;
+}
+function startReflex() {
+  clearInterval(reflexTimer);
+  const key=KEYS[Math.floor(Math.random()*KEYS.length)];
+  const f=field(key);
+  const deg=Math.floor(Math.random()*7)+1;
+  const note=f[deg-1];
+  // 3 wrong options
+  const wrong=f.filter(n=>n.deg!==deg).sort(()=>Math.random()-.5).slice(0,3).map(n=>n.chord);
+  const options=[...wrong,note.chord].sort(()=>Math.random()-.5);
+  reflexQuestion={deg,key,options,f};
+  reflexAnswer=null;
+  reflexTimeLeft=4;
+  renderReflex();
+  reflexTimer=setInterval(()=>{
+    if(reflexAnswer!==null){ clearInterval(reflexTimer); return; }
+    reflexTimeLeft-=0.1;
+    if(reflexTimeLeft<=0){
+      clearInterval(reflexTimer);
+      reflexAns("__timeout__");
+      return;
+    }
+    // Update timer display only
+    const el=document.getElementById("e3-game");
+    if(el){
+      const pct=(reflexTimeLeft/4)*100;
+      const tc=pct>60?"#34d399":pct>30?"#f59e0b":"#ef4444";
+      const tEl=el.querySelector("[style*='font-family:monospace']");
+      if(tEl) tEl.textContent=reflexTimeLeft.toFixed(1)+"s";
+      const bar=el.querySelector("[style*='width:']");
+      if(bar){ bar.style.width=pct+"%"; bar.style.background=tc; }
+    }
+  },100);
+}
+function reflexAns(chord) {
+  if(reflexAnswer!==null||!reflexQuestion) return;
+  clearInterval(reflexTimer);
+  reflexAnswer=chord;
+  const correct=chord===reflexQuestion.f[reflexQuestion.deg-1].chord;
+  if(correct){ reflexScore.right++; reflexScore.streak++; }
+  else { reflexScore.wrong++; reflexScore.streak=0; }
+  renderReflex();
+}
+
+
+// ════════════════════════════════════════════════════════════════
+// D3: CÍRCULO DAS QUINTAS
+// ════════════════════════════════════════════════════════════════
+const FIFTHS_ORDER = ["C","G","D","A","E","B","F#","Db","Ab","Eb","Bb","F"];
+const FIFTHS_PT    = {C:"Dó",G:"Sol",D:"Ré",A:"Lá",E:"Mi",B:"Si",
+                      "F#":"Fá#",Db:"Réb",Ab:"Láb",Eb:"Míb",Bb:"Síb",F:"Fá"};
+
+function initCircleFifths() {
+  const el = document.getElementById("circle-fifths");
+  if (!el || typeof d3 === "undefined") return;
+  el.innerHTML = "";
+
+  const size  = Math.min(window.innerWidth - 40, 320);
+  const cx    = size / 2, cy = size / 2;
+  const Ro    = size * 0.44, Ri = size * 0.26;
+
+  const svg = d3.select(el).append("svg")
+    .attr("width", size).attr("height", size);
+
+  // Outer ring: all 12 keys
+  const pie = d3.pie().value(1).sort(null);
+  const arc = d3.arc().innerRadius(Ri + 6).outerRadius(Ro);
+  const arcHover = d3.arc().innerRadius(Ri + 4).outerRadius(Ro + 6);
+
+  const arcs = svg.selectAll(".key-slice")
+    .data(pie(FIFTHS_ORDER)).enter()
+    .append("g").attr("class","key-slice")
+    .attr("transform",`translate(${cx},${cy})`);
+
+  // Slice paths
+  arcs.append("path")
+    .attr("d", arc)
+    .attr("fill", (d,i) => {
+      // Highlight current key
+      return d.data === grausKey ? "#f59e0b" : "#0d0d1f";
+    })
+    .attr("stroke", (d,i) => d.data === grausKey ? "#f59e0b" : "#ffffff18")
+    .attr("stroke-width", 1)
+    .style("cursor","pointer")
+    .on("click", function(event, d) { selectCircleKey(d.data); })
+    .on("touchstart", function(event, d) { event.preventDefault(); selectCircleKey(d.data); }, {passive:false})
+    .transition().duration(400).ease(d3.easeBackOut)
+    .attrTween("d", function(d) {
+      const i = d3.interpolate({startAngle: d.startAngle, endAngle: d.startAngle}, d);
+      return t => arc(i(t));
+    });
+
+  // Key labels on slices
+  arcs.append("text")
+    .attr("transform", d => `translate(${arc.centroid(d)})`)
+    .attr("text-anchor","middle").attr("dominant-baseline","central")
+    .attr("font-size", size * 0.055).attr("font-weight","700")
+    .attr("font-family","-apple-system,sans-serif")
+    .attr("fill", d => d.data === grausKey ? "#000" : "#888")
+    .style("pointer-events","none")
+    .text(d => d.data)
+    .attr("opacity",0)
+    .transition().delay(200).duration(300)
+    .attr("opacity",1);
+
+  // Inner circle: show field degrees
+  drawInnerField(svg, cx, cy, Ri - 4);
+
+  // Center label
+  svg.append("text")
+    .attr("id","circle-center-label")
+    .attr("x",cx).attr("y",cy-6)
+    .attr("text-anchor","middle")
+    .attr("font-size", size*0.07).attr("font-weight","900")
+    .attr("font-family","-apple-system,sans-serif")
+    .attr("fill","#f59e0b")
+    .text(grausKey);
+
+  svg.append("text")
+    .attr("id","circle-center-sub")
+    .attr("x",cx).attr("y",cy+14)
+    .attr("text-anchor","middle")
+    .attr("font-size", size*0.04)
+    .attr("font-family","-apple-system,sans-serif")
+    .attr("fill","#555")
+    .text(FIFTHS_PT[grausKey]||grausKey);
+}
+
+function drawInnerField(svg, cx, cy, r) {
+  const f = field(grausKey);
+  const size = r * 2;
+  svg.selectAll(".inner-deg").remove();
+
+  f.forEach((n, i) => {
+    const angle = (i / 7) * 2 * Math.PI - Math.PI / 2;
+    const x = cx + r * 0.75 * Math.cos(angle);
+    const y = cy + r * 0.75 * Math.sin(angle);
+
+    // Circle
+    svg.append("circle")
+      .attr("class","inner-deg")
+      .attr("cx", x).attr("cy", y).attr("r", 0)
+      .attr("fill", n.color + "22")
+      .attr("stroke", n.color)
+      .attr("stroke-width", 1.5)
+      .style("cursor","pointer")
+      .on("click", function() { playChord(n.semis); })
+      .on("touchstart", function(e) { e.preventDefault(); playChord(n.semis); }, {passive:false})
+      .transition().delay(i * 40).duration(300).ease(d3.easeBackOut)
+      .attr("r", r * 0.15);
+
+    // Chord label
+    svg.append("text")
+      .attr("class","inner-deg")
+      .attr("x", x).attr("y", y - 4)
+      .attr("text-anchor","middle")
+      .attr("font-size", r * 0.17).attr("font-weight","900")
+      .attr("font-family","monospace")
+      .attr("fill", n.color)
+      .style("pointer-events","none")
+      .text(n.chord)
+      .attr("opacity",0)
+      .transition().delay(200 + i*40).duration(200)
+      .attr("opacity",1);
+
+    // Degree number
+    svg.append("text")
+      .attr("class","inner-deg")
+      .attr("x", x).attr("y", y + 10)
+      .attr("text-anchor","middle")
+      .attr("font-size", r * 0.11)
+      .attr("font-family","-apple-system,sans-serif")
+      .attr("fill", n.color + "88")
+      .style("pointer-events","none")
+      .text(n.deg)
+      .attr("opacity",0)
+      .transition().delay(200 + i*40).duration(200)
+      .attr("opacity",1);
+  });
+}
+
+function selectCircleKey(key) {
+  grausKey = key;
+  // Update label
+  const lbl = document.getElementById("graus-key-label");
+  if (lbl) lbl.textContent = (FIFTHS_PT[key]||key) + " (" + key + ")";
+  // Re-render
+  initCircleFifths();
+  renderGraus();
+  // Play tonic
+  const f = field(key);
+  playChord(f[0].semis);
+}
+
+// ════════════════════════════════════════════════════════════════
+// D3: IMPROVED GAME PARTICLES
+// ════════════════════════════════════════════════════════════════
+let d3ParticleLayer = null;
+
+function initD3Particles() {
+  if (typeof d3 === "undefined") return;
+  // Create overlay SVG on top of canvas
+  const container = document.getElementById("game-screen");
+  const existing  = document.getElementById("d3-particles");
+  if (existing) existing.remove();
+
+  const svg = d3.select(container).append("svg")
+    .attr("id","d3-particles")
+    .style("position","absolute")
+    .style("inset","0")
+    .style("pointer-events","none")
+    .style("z-index","10");
+
+  d3ParticleLayer = svg;
+}
+
+function spawnHitParticles(x, y, color, chord) {
+  if (!d3ParticleLayer || typeof d3 === "undefined") return;
+
+  const svgEl = document.getElementById("d3-particles");
+  if (!svgEl) return;
+  svgEl.setAttribute("width",  gW);
+  svgEl.setAttribute("height", gH);
+
+  const n = 12;
+  const particles = d3.range(n).map(i => ({
+    angle: (i / n) * 2 * Math.PI + Math.random() * 0.3,
+    speed: 60 + Math.random() * 80,
+    size:  4 + Math.random() * 6,
+    opacity: 0.9 + Math.random() * 0.1,
+  }));
+
+  const g = d3ParticleLayer.append("g");
+
+  // Chord label burst
+  g.append("text")
+    .attr("x", x).attr("y", y)
+    .attr("text-anchor","middle")
+    .attr("font-size", 22).attr("font-weight","900")
+    .attr("font-family","monospace")
+    .attr("fill", color)
+    .attr("opacity", 1)
+    .text("✓ " + chord)
+    .transition().duration(700).ease(d3.easeExpOut)
+    .attr("y", y - 50)
+    .attr("opacity", 0)
+    .remove();
+
+  // Particle dots
+  const circles = g.selectAll("circle").data(particles).enter()
+    .append("circle")
+    .attr("cx", x).attr("cy", y)
+    .attr("r", d => d.size)
+    .attr("fill", (d, i) => i % 2 === 0 ? color : "#fff")
+    .attr("opacity", d => d.opacity);
+
+  circles.transition().duration(600).ease(d3.easeExpOut)
+    .attr("cx", (d,i) => x + Math.cos(d.angle) * d.speed)
+    .attr("cy", (d,i) => y + Math.sin(d.angle) * d.speed)
+    .attr("r", 1)
+    .attr("opacity", 0)
+    .on("end", function() { d3.select(this.parentNode).remove(); });
+}
+
+function spawnMissEffect(x, y) {
+  if (!d3ParticleLayer || typeof d3 === "undefined") return;
+  const g = d3ParticleLayer.append("g");
+  g.append("text")
+    .attr("x", x).attr("y", y)
+    .attr("text-anchor","middle")
+    .attr("font-size", 18).attr("font-weight","900")
+    .attr("fill","#ef4444")
+    .attr("opacity",1).text("✗")
+    .transition().duration(500)
+    .attr("y", y - 30).attr("opacity", 0).remove();
+}
+
+
+// ════════════════════════════════════════════════════════════════
+// MODULE 6: MÚSICAS REAIS COM SYNC
+// ════════════════════════════════════════════════════════════════
+
+// Song database with pre-calculated timestamps
+const SONGS = [
+  {
+    id:"oceanos",
+    title:"Oceanos",
+    artist:"Hillsong (PT)",
+    ytId:"dy9nwe9_xzw",
+    key:"D",
+    bpm:68,
+    color:"#60a5fa",
+    difficulty:1,
+    // [time_seconds, degree_index(0-6), chord_name]
+    timestamps: (()=>{
+      const chords=["D","Em","F#m","G","A","Bm","C#°"];
+      const prog=[0,4,5,3]; // 1-5-6-4
+      const beatDur=60/68, chordDur=beatDur*8;
+      const ts=[]; let t=14;
+      for(let i=0;i<48;i++){
+        const di=prog[i%prog.length];
+        ts.push({t:parseFloat(t.toFixed(2)),deg:di+1,chord:chords[di],color:["#34d399","#60a5fa","#a78bfa","#60a5fa","#f59e0b","#ec4899","#ef4444"][di]});
+        t+=chordDur;
+      }
+      return ts;
+    })()
+  },
+  {
+    id:"nenhum-maior",
+    title:"Nenhum Maior",
+    artist:"Fernandinho",
+    ytId:"ZF_5nWCDubE",
+    key:"G",
+    bpm:74,
+    color:"#34d399",
+    difficulty:1,
+    timestamps: (()=>{
+      const chords=["G","Am","Bm","C","D","Em","F#°"];
+      const prog=[0,4,5,3];
+      const beatDur=60/74, chordDur=beatDur*8;
+      const ts=[]; let t=8;
+      for(let i=0;i<48;i++){
+        const di=prog[i%prog.length];
+        ts.push({t:parseFloat(t.toFixed(2)),deg:di+1,chord:chords[di],color:["#34d399","#60a5fa","#a78bfa","#60a5fa","#f59e0b","#ec4899","#ef4444"][di]});
+        t+=chordDur;
+      }
+      return ts;
+    })()
+  },
+  {
+    id:"bondade-de-deus",
+    title:"Bondade de Deus",
+    artist:"Ministério Zoe",
+    ytId:"Sd6bZ7fXJBs",
+    key:"C",
+    bpm:76,
+    color:"#f59e0b",
+    difficulty:1,
+    timestamps: (()=>{
+      const chords=["C","Dm","Em","F","G","Am","B°"];
+      const prog=[0,4,5,3];
+      const beatDur=60/76, chordDur=beatDur*8;
+      const ts=[]; let t=10;
+      for(let i=0;i<48;i++){
+        const di=prog[i%prog.length];
+        ts.push({t:parseFloat(t.toFixed(2)),deg:di+1,chord:chords[di],color:["#34d399","#60a5fa","#a78bfa","#60a5fa","#f59e0b","#ec4899","#ef4444"][di]});
+        t+=chordDur;
+      }
+      return ts;
+    })()
+  },
+  {
+    id:"ousado-amor",
+    title:"Ousado Amor",
+    artist:"Aline Barros",
+    ytId:"H0r5F3BNKL0",
+    key:"G",
+    bpm:70,
+    color:"#ec4899",
+    difficulty:2,
+    timestamps: (()=>{
+      const chords=["G","Am","Bm","C","D","Em","F#°"];
+      const prog=[5,3,0,4]; // 6-4-1-5
+      const beatDur=60/70, chordDur=beatDur*8;
+      const ts=[]; let t=12;
+      for(let i=0;i<48;i++){
+        const di=prog[i%prog.length];
+        ts.push({t:parseFloat(t.toFixed(2)),deg:di+1,chord:chords[di],color:["#34d399","#60a5fa","#a78bfa","#60a5fa","#f59e0b","#ec4899","#ef4444"][di]});
+        t+=chordDur;
+      }
+      return ts;
+    })()
+  },
+  {
+    id:"lugar-secreto",
+    title:"Lugar Secreto",
+    artist:"Gabriela Rocha",
+    ytId:"pKuXABCpzE4",
+    key:"C",
+    bpm:68,
+    color:"#a78bfa",
+    difficulty:2,
+    timestamps: (()=>{
+      const chords=["C","Dm","Em","F","G","Am","B°"];
+      const prog=[1,4,0]; // 2-5-1
+      const beatDur=60/68, chordDur=beatDur*8;
+      const ts=[]; let t=12;
+      for(let i=0;i<48;i++){
+        const di=prog[i%prog.length];
+        ts.push({t:parseFloat(t.toFixed(2)),deg:di+1,chord:chords[di],color:["#34d399","#60a5fa","#a78bfa","#60a5fa","#f59e0b","#ec4899","#ef4444"][di]});
+        t+=chordDur;
+      }
+      return ts;
+    })()
+  },
+];
+
+// Custom timestamps (saved by user via editor)
+let customTimestamps = JSON.parse(localStorage.getItem("gospel_timestamps")||"{}");
+
+// State
+let activeSong = null, ytPlayer = null, ytReady = false;
+let syncRaf = null, syncLastIdx = -1;
+let spMicOn = false, spMicStream = null, spMicAnalyser = null, spMicRaf = null;
+let spHits = 0, spMisses = 0, spStreak = 0, spLastDet = -1;
+let spLastTrig = 0;
+// Mini canvas for upcoming notes
+let spCanvas = null, spCtx = null;
+// Editor state
+let edTaps = [], edPlayer = null, edPlayerReady = false;
+
+// ── SONG LIST ──
+function renderMusicas() {
+  const el = document.getElementById("musicas-list");
+  if (!el) return;
+  el.innerHTML = "";
+
+  // Info card
+  const info = document.createElement("div");
+  info.className = "info-card";
+  info.innerHTML = `<strong style="color:#f472b6">Como funciona:</strong> Escolha uma música,
+    o YouTube toca e os graus aparecem sincronizados na tela.
+    Ative o microfone e toque seu violão — quando o app detectar o acorde certo, conta ponto! 🎸<br><br>
+    <span style="color:#888">⚠️ Timestamps são aproximados. Use "Editar Sync" para afinar.</span>`;
+  el.appendChild(info);
+
+  SONGS.forEach(song => {
+    const card = document.createElement("div");
+    card.className = "section";
+    card.style.cursor = "pointer";
+    card.style.borderColor = song.color + "22";
+    card.innerHTML = `
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:48px;height:48px;border-radius:12px;
+          background:${song.color}18;border:1px solid ${song.color}44;
+          display:flex;align-items:center;justify-content:center;
+          font-size:22px;flex-shrink:0">✝️</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:15px;font-weight:700;color:#fff">${song.title}</div>
+          <div style="font-size:11px;color:#666;margin-top:2px">${song.artist}</div>
+          <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap">
+            <span style="font-size:10px;color:#f59e0b">Tom: ${song.key}</span>
+            <span style="font-size:10px;color:${song.color}">
+              ${customTimestamps[song.id] ? "✓ Sync personalizado" : "⚡ Sync automático"}
+            </span>
+            <span style="font-size:10px;color:#555">${"⭐".repeat(song.difficulty)}</span>
+          </div>
+        </div>
+        <div style="font-size:24px;color:#333">›</div>
+      </div>`;
+    card.onclick = () => openSong(song);
+    el.appendChild(card);
+  });
+}
+
+// ── OPEN SONG ──
+function openSong(song) {
+  activeSong = song;
+  spHits = 0; spMisses = 0; spStreak = 0; spLastDet = -1; syncLastIdx = -1;
+  updateSpScore();
+
+  document.getElementById("sp-title").textContent  = song.title;
+  document.getElementById("sp-artist").textContent = song.artist;
+  document.getElementById("sp-key").textContent    = song.key;
+  document.getElementById("sp-current-chord").textContent = "—";
+  document.getElementById("sp-current-fn").textContent    = "Aguardando...";
+
+  const playerDiv = document.getElementById("song-player");
+  playerDiv.style.display = "flex";
+
+  // Load YouTube IFrame API if not already
+  if (!window.YT) {
+    const tag = document.createElement("script");
+    tag.src = "https://www.youtube.com/iframe_api";
+    document.head.appendChild(tag);
+    window.onYouTubeIframeAPIReady = () => createYTPlayer(song);
+  } else if (typeof YT.Player !== "undefined") {
+    createYTPlayer(song);
+  } else {
+    window.onYouTubeIframeAPIReady = () => createYTPlayer(song);
+  }
+}
+
+function isInIframe() {
+  try { return window.self !== window.top; } catch(e) { return true; }
+}
+
+function createYTPlayer(song) {
+  // Show warning if inside iframe (Claude.ai)
+  const notice = document.getElementById("sp-yt-notice");
+  if (notice && isInIframe()) {
+    notice.style.display = "block";
+    // Still try to load but show fallback
+  }
+  const container = document.getElementById("sp-youtube");
+  container.innerHTML = "";
+  const div = document.createElement("div");
+  div.id = "yt-iframe-inner";
+  container.appendChild(div);
+
+  ytPlayer = new YT.Player("yt-iframe-inner", {
+    height:"200",
+    width:"100%",
+    videoId: song.ytId,
+    playerVars:{ rel:0, modestbranding:1, playsinline:1 },
+    events:{
+      onReady: () => { ytReady = true; startSyncLoop(); },
+      onStateChange: (e) => {
+        if (e.data === YT.PlayerState.PLAYING) startSyncLoop();
+        if (e.data === YT.PlayerState.PAUSED || e.data === YT.PlayerState.ENDED) stopSyncLoop();
+      }
+    }
+  });
+}
+
+// ── SYNC LOOP ──
+function startSyncLoop() {
+  stopSyncLoop();
+  syncRaf = requestAnimationFrame(syncTick);
+}
+function stopSyncLoop() {
+  if (syncRaf) cancelAnimationFrame(syncRaf);
+  syncRaf = null;
+}
+
+function syncTick() {
+  if (!ytPlayer || !ytReady || !activeSong) return;
+  syncRaf = requestAnimationFrame(syncTick);
+
+  let currentTime = 0;
+  try { currentTime = ytPlayer.getCurrentTime(); } catch(e) { return; }
+
+  const ts = customTimestamps[activeSong.id] || activeSong.timestamps;
+  if (!ts || ts.length === 0) return;
+
+  // Find current and next chord
+  let curIdx = -1;
+  for (let i = ts.length - 1; i >= 0; i--) {
+    if (currentTime >= ts[i].t) { curIdx = i; break; }
+  }
+
+  if (curIdx < 0) {
+    // Before first chord
+    const nextChord = ts[0];
+    const timeUntil = ts[0].t - currentTime;
+    document.getElementById("sp-current-chord").textContent = "—";
+    document.getElementById("sp-current-fn").textContent =
+      `▶ Em ${timeUntil.toFixed(1)}s → ${nextChord.chord}`;
+    updateUpcoming(ts, -1);
+    drawMiniCanvas(ts, currentTime);
+    return;
+  }
+
+  const cur = ts[curIdx];
+
+  // Update display
+  document.getElementById("sp-current-chord").textContent = cur.chord;
+  document.getElementById("sp-current-chord").style.color = cur.color;
+  document.getElementById("sp-current-fn").textContent =
+    `Grau ${cur.deg} — ${["Tônica","Subdominante","Mediante","Subdominante","Dominante","Relativa","Sensível"][cur.deg-1]}`;
+
+  updateUpcoming(ts, curIdx);
+  drawMiniCanvas(ts, currentTime);
+}
+
+function updateUpcoming(ts, curIdx) {
+  const el = document.getElementById("sp-upcoming");
+  if (!el) return;
+  el.innerHTML = "";
+  for (let i = curIdx + 1; i <= curIdx + 4 && i < ts.length; i++) {
+    const n = ts[i];
+    const div = document.createElement("div");
+    div.style.cssText = `flex:1;padding:8px 4px;border-radius:10px;text-align:center;
+      background:${n.color}12;border:1px solid ${n.color}33;transition:all.2s`;
+    div.innerHTML = `<div style="font-size:16px;font-weight:900;font-family:monospace;color:${n.color}">${n.chord}</div>
+      <div style="font-size:9px;color:#444;margin-top:1px">${n.deg}</div>`;
+    el.appendChild(div);
+  }
+}
+
+function drawMiniCanvas(ts, currentTime) {
+  if (!spCanvas) {
+    spCanvas = document.getElementById("sp-mini-canvas");
+    if (!spCanvas) return;
+    spCtx = spCanvas.getContext("2d");
+  }
+  const W = spCanvas.offsetWidth, H = spCanvas.offsetHeight;
+  if (spCanvas.width !== W * 2) { spCanvas.width = W * 2; spCanvas.height = H * 2; spCtx.scale(2,2); }
+  spCtx.clearRect(0, 0, W, H);
+
+  // Show next 8 seconds of chords as falling notes
+  const lookahead = 8;
+  const hitY = H * 0.75;
+
+  // Hit line
+  spCtx.strokeStyle = "rgba(52,211,153,0.3)";
+  spCtx.lineWidth = 1;
+  spCtx.beginPath(); spCtx.moveTo(0, hitY); spCtx.lineTo(W, hitY); spCtx.stroke();
+
+  ts.forEach(n => {
+    const dt = n.t - currentTime;
+    if (dt < -0.5 || dt > lookahead) return;
+    const y = hitY - (dt / lookahead) * hitY;
+    const x = ((n.deg - 1) / 7) * W + W / 14;
+    const r = 14;
+
+    spCtx.shadowColor = n.color;
+    spCtx.shadowBlur = dt < 0.5 ? 12 : 4;
+    spCtx.fillStyle = dt < 0 ? n.color + "44" : n.color + "22";
+    spCtx.strokeStyle = n.color;
+    spCtx.lineWidth = dt < 0.5 ? 2.5 : 1.5;
+    spCtx.beginPath();
+    spCtx.roundRect(x - r, y - 10, r*2, 20, 6);
+    spCtx.fill(); spCtx.stroke();
+
+    spCtx.shadowBlur = 0;
+    spCtx.fillStyle = dt < 0 ? n.color + "88" : n.color;
+    spCtx.font = `bold ${dt < 0.5 ? 12 : 10}px monospace`;
+    spCtx.textAlign = "center";
+    spCtx.textBaseline = "middle";
+    spCtx.fillText(n.chord, x, y);
+  });
+}
+
+function closeSongPlayer() {
+  stopSyncLoop();
+  stopSongMic();
+  try { if (ytPlayer) ytPlayer.stopVideo(); } catch(e) {}
+  document.getElementById("song-player").style.display = "none";
+  activeSong = null;
+  ytPlayer = null; ytReady = false;
+}
+
+// Manual sync mode - simulate playback position with a timer
+let manualTime = 0, manualTimer = null, manualPlaying = false;
+
+function startManualSync() {
+  if (!activeSong) return;
+  manualPlaying = true; manualTime = 0;
+  clearInterval(manualTimer);
+  manualTimer = setInterval(() => {
+    manualTime += 0.1;
+    const ts = customTimestamps[activeSong.id] || activeSong.timestamps;
+    let curIdx = -1;
+    for (let i = ts.length-1; i>=0; i--) { if(manualTime >= ts[i].t){curIdx=i;break;} }
+    if (curIdx >= 0) {
+      const cur = ts[curIdx];
+      document.getElementById("sp-current-chord").textContent = cur.chord;
+      document.getElementById("sp-current-chord").style.color = cur.color;
+      document.getElementById("sp-current-fn").textContent =
+        "Grau " + cur.deg + " — " + ["Tônica","Subdominante","Mediante","Subdominante","Dominante","Relativa","Sensível"][cur.deg-1];
+      updateUpcoming(ts, curIdx);
+      drawMiniCanvas(ts, manualTime);
+    }
+  }, 100);
+}
+
+// ── SONG MIC ──
+function toggleSongMic() {
+  if (spMicOn) stopSongMic(); else startSongMic();
+}
+
+async function startSongMic() {
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    const ctx = new AC();
+    if (ctx.state === "suspended") await ctx.resume();
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+    spMicStream = stream;
+    const src = ctx.createMediaStreamSource(stream);
+    spMicAnalyser = ctx.createAnalyser();
+    spMicAnalyser.fftSize = 8192;
+    spMicAnalyser.smoothingTimeConstant = 0.5;
+    src.connect(spMicAnalyser);
+    spMicOn = true;
+    document.getElementById("sp-mic-btn").className = "btn-sec on";
+    document.getElementById("sp-mic-btn").textContent = "🎙 Ouvindo";
+    document.getElementById("sp-mic-txt").textContent = "🎙 Ouvindo...";
+    document.getElementById("sp-mic-bar").style.display = "flex";
+    spMicLoop(ctx);
+  } catch(e) {
+    document.getElementById("sp-mic-txt").textContent = "❌ Permite o microfone no Safari";
+  }
+}
+
+function stopSongMic() {
+  cancelAnimationFrame(spMicRaf);
+  spMicStream && spMicStream.getTracks().forEach(t => t.stop());
+  spMicAnalyser = null; spMicStream = null; spMicOn = false;
+  document.getElementById("sp-mic-btn").className = "btn-sec";
+  document.getElementById("sp-mic-btn").textContent = "🎙 Ativar microfone";
+  document.getElementById("sp-mic-txt").textContent = "Toque no microfone para detectar seus acordes";
+  document.getElementById("sp-mic-bar").style.display = "none";
+}
+
+function spMicLoop(audioCtx) {
+  if (!spMicAnalyser) return;
+  spMicRaf = requestAnimationFrame(() => spMicLoop(audioCtx));
+
+  const td = new Float32Array(spMicAnalyser.fftSize);
+  spMicAnalyser.getFloatTimeDomainData(td);
+  let rms = 0; for(let i=0;i<td.length;i++) rms+=td[i]*td[i];
+  rms = Math.sqrt(rms/td.length);
+  document.getElementById("sp-mic-fill").style.width = Math.min(100,rms*500)+"%";
+  if (rms < 0.008) return;
+
+  const fd = new Float32Array(spMicAnalyser.frequencyBinCount);
+  spMicAnalyser.getFloatFrequencyData(fd);
+  const f = field(activeSong ? activeSong.key : "C");
+  const { best, score } = detectChord(fd, audioCtx.sampleRate, spMicAnalyser.fftSize*2, f);
+  const conf = Math.min(1, score / 4.5);
+
+  if (conf > 0.2 && best) {
+    document.getElementById("sp-mic-txt").innerHTML =
+      `<span style="color:${conf>.6?"#34d399":conf>.4?"#f59e0b":"#888"}">🎸 ${best.chord}</span>
+       <span style="color:#333;font-size:10px">${Math.round(conf*100)}%</span>`;
+  } else {
+    document.getElementById("sp-mic-txt").textContent = "🎙 Ouvindo...";
+  }
+
+  if (conf < 0.55 || !activeSong || !ytPlayer) return;
+  const now = Date.now(); if (now - spLastTrig < 400) return;
+
+  // Get current song timestamp
+  let currentTime = 0;
+  try { currentTime = ytPlayer.getCurrentTime(); } catch(e) { return; }
+  const ts = customTimestamps[activeSong.id] || activeSong.timestamps;
+  let curIdx = -1;
+  for (let i = ts.length - 1; i >= 0; i--) {
+    if (currentTime >= ts[i].t) { curIdx = i; break; }
+  }
+  if (curIdx < 0) return;
+
+  const curChord = ts[curIdx];
+  if (best && best.chord === curChord.chord && spLastDet !== curIdx) {
+    spLastTrig = now; spLastDet = curIdx;
+    spHits++; spStreak++;
+    updateSpScore();
+    document.getElementById("sp-mic-txt").textContent = `✅ ${curChord.chord} — grau ${curChord.deg}!`;
+    setTimeout(() => { if(spMicOn) document.getElementById("sp-mic-txt").textContent = "🎙 Ouvindo..."; }, 1200);
+  }
+}
+
+function updateSpScore() {
+  document.getElementById("sp-hits").textContent   = spHits;
+  document.getElementById("sp-streak").textContent = spStreak + "🔥";
+  const total = spHits + spMisses;
+  document.getElementById("sp-acc").textContent = total > 0 ? Math.round(spHits/total*100)+"%" : "—";
+}
+
+// ── TIMESTAMP EDITOR ──
+let edCurrentSong = null, edTapList = [], edCtx = null;
+
+function openEditor() {
+  if (!activeSong) return;
+  edCurrentSong = activeSong;
+  edTapList = customTimestamps[activeSong.id]
+    ? customTimestamps[activeSong.id].map(t=>t.t)
+    : [];
+
+  document.getElementById("ts-editor").style.display = "flex";
+  renderEdLog();
+
+  // Load YouTube in editor
+  const container = document.getElementById("ed-youtube");
+  container.innerHTML = `<div id="ed-yt-inner"></div>`;
+  if (window.YT && typeof YT.Player !== "undefined") {
+    edPlayer = new YT.Player("ed-yt-inner", {
+      height:"180", width:"100%",
+      videoId: edCurrentSong.ytId,
+      playerVars:{rel:0, modestbranding:1, playsinline:1},
+      events:{ onReady: ()=>{ edPlayerReady=true; } }
+    });
+  }
+}
+
+function closeEditor() {
+  document.getElementById("ts-editor").style.display = "none";
+  try { if(edPlayer) edPlayer.stopVideo(); } catch(e) {}
+}
+
+function edTap() {
+  if (!edPlayer || !edPlayerReady) return;
+  let t = 0;
+  try { t = edPlayer.getCurrentTime(); } catch(e) {}
+  edTapList.push(parseFloat(t.toFixed(2)));
+  renderEdLog();
+}
+
+function edReset() {
+  edTapList = [];
+  renderEdLog();
+}
+
+function renderEdLog() {
+  const el = document.getElementById("ed-log");
+  if (!el) return;
+  if (edTapList.length === 0) {
+    el.textContent = "Taps aparecerão aqui...";
+    return;
+  }
+  // Show taps mapped to chords
+  const ts = activeSong.timestamps;
+  const chords = ts.map(t=>t.chord);
+  const prog = activeSong.timestamps.map(t=>t.deg);
+  el.innerHTML = edTapList.map((t, i) => {
+    const origChord = ts[i % ts.length];
+    return `<div style="margin-bottom:4px;color:#aaa">
+      ${(i+1).toString().padStart(2,'0')}. <strong style="color:${origChord?origChord.color:"#fff"}">${origChord?origChord.chord:"?"}</strong>
+      — ${t.toFixed(2)}s
+    </div>`;
+  }).join("");
+  el.scrollTop = el.scrollHeight;
+}
+
+function edSave() {
+  if (!edCurrentSong || edTapList.length === 0) return;
+  const orig = edCurrentSong.timestamps;
+  const newTs = edTapList.map((t, i) => {
+    const base = orig[i % orig.length];
+    return { t, deg: base.deg, chord: base.chord, color: base.color };
+  });
+  customTimestamps[edCurrentSong.id] = newTs;
+  localStorage.setItem("gospel_timestamps", JSON.stringify(customTimestamps));
+  closeEditor();
+  renderMusicas();
+  alert(`✅ Timestamps salvos! ${newTs.length} acordes sincronizados.`);
+}
+
+// Hook showTab for musicas
+const _origShowTab2 = showTab;
+showTab = function(id) {
+  _origShowTab2(id);
+  if (id === "musicas") renderMusicas();
+};
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+initGraus();
+initHarm();
+
+// ════════════════════════════════════════════════════════════════
+// MODULE 5: GUITAR HERO GAME (Canvas)
+// ════════════════════════════════════════════════════════════════
+let gameKey="G", gameProg=PROGS[0], gameLevel=1;
+let gameRunning=false, gameRaf=null;
+let gameNotes=[], gameScore=0, gameCombo=1, gameHits=0, gameMisses=0;
+let gameHealth=5, gameTarget=10, gameSpawnTimer=0;
+let gameLastTime=0, gameFeedback=[], gameSpawnIdx=0, gameHints=false;
+let gCanvas, gCtx, gW, gH, gHitY;
+const GCFG={1:{interval:3200,speed:0.055,hints:true,target:10},2:{interval:2200,speed:0.09,hints:false,target:15},3:{interval:1500,speed:0.13,hints:false,target:20}};
+
+function initGameMenu(){
+  const kEl=document.getElementById("game-keys"); if(!kEl) return;
+  kEl.innerHTML="";
+  KEYS.forEach(k=>{
+    const b=document.createElement("button");
+    b.className="key-btn"+(k===gameKey?" active":""); b.textContent=k;
+    b.onclick=()=>{ gameKey=k; document.querySelectorAll("#game-keys .key-btn").forEach((x,i)=>x.classList.toggle("active",KEYS[i]===k)); renderGameProgs(); };
+    kEl.appendChild(b);
+  });
+  renderGameProgs();
+}
+function renderGameProgs(){
+  const el=document.getElementById("game-progs"); if(!el) return; el.innerHTML="";
+  PROGS.forEach(p=>{
+    const f=field(gameKey), b=document.createElement("button");
+    b.className="prog-sel"+(p===gameProg?" active":"");
+    b.style.setProperty("--pc",p.color);
+    b.innerHTML=`<div><span class="prog-sel-name" style="color:${p.color}">${p.name}</span>&nbsp;${p.label}</div><div style="font-size:11px;color:#555">${p.deg.map(d=>f[d].chord).join("→")}</div>`;
+    b.onclick=()=>{ gameProg=p; renderGameProgs(); };
+    el.appendChild(b);
+  });
+}
+function gameSpeed1(){startGame(1);} function gameSpeed2(){startGame(2);} function gameSpeed3(){startGame(3);}
+
+function startGame(lv){
+  gameLevel=lv; const cfg=GCFG[lv];
+  gameHints=cfg.hints; gameTarget=cfg.target;
+  gameScore=0; gameCombo=1; gameHits=0; gameMisses=0;
+  gameHealth=5; gameNotes=[]; gameFeedback=[]; gameSpawnIdx=0; gameSpawnTimer=0;
+  document.getElementById("game-menu").style.display="none";
+  const gs=document.getElementById("game-screen"); gs.style.display="flex";
+  gCanvas=document.getElementById("game-canvas");
+  gCtx=gCanvas.getContext("2d");
+  const dpr=window.devicePixelRatio||1;
+  gCanvas.width=gCanvas.offsetWidth*dpr; gCanvas.height=gCanvas.offsetHeight*dpr;
+  gCtx.scale(dpr,dpr);
+  gW=gCanvas.offsetWidth; gH=gCanvas.offsetHeight; gHitY=gH*0.8;
+  buildGameBtns(); updateHUD();
+  initD3Particles();
+  gameRunning=true; gameLastTime=performance.now();
+  gameRaf=requestAnimationFrame(gameLoop);
+}
+function buildGameBtns(){
+  const f=field(gameKey);
+  ["g-btns-top","g-btns-bot"].forEach((id,row)=>{
+    const el=document.getElementById(id); el.innerHTML="";
+    const degs=row===0?[0,1,2,3]:[4,5,6];
+    degs.forEach(i=>{
+      const n=f[i], b=document.createElement("button");
+      b.id="gbtn-"+n.deg;
+      b.style.cssText=`flex:1;padding:11px 2px;border-radius:11px;border:none;background:#ffffff10;color:${n.color};font-size:19px;font-weight:900;font-family:monospace;transition:all.12s`;
+      b.innerHTML=`<div>${n.deg}</div><div style="font-size:8px;opacity:.6;font-family:-apple-system">${n.chord}</div>`;
+      const press=e=>{if(e.cancelable)e.preventDefault();gamePress(n.deg);};
+      b.addEventListener("touchstart",press,{passive:false}); b.addEventListener("click",press);
+      el.appendChild(b);
+    });
+    if(row===1){
+      const stop=document.createElement("button");
+      stop.style.cssText="flex:1;padding:11px 2px;border-radius:11px;border:1px solid #ffffff15;background:#ffffff08;color:#555;font-size:10px";
+      stop.innerHTML="■<br><span style='font-size:8px'>SAIR</span>";
+      stop.onclick=()=>endGame(false);
+      el.appendChild(stop);
+    }
+  });
+}
+function gameLoop(ts){
+  if(!gameRunning) return;
+  const dt=ts-gameLastTime; gameLastTime=ts;
+  const cfg=GCFG[gameLevel];
+  gameSpawnTimer+=dt;
+  if(gameSpawnTimer>=cfg.interval){ gameSpawnTimer=0; spawnNote(); }
+  const mv=cfg.speed*(gH/100);
+  gameNotes.forEach(n=>n.y+=mv*(dt/16));
+  gameNotes=gameNotes.filter(n=>{ if(n.y>gH+30){ recordMiss(); return false; } return true; });
+  drawGame();
+  gameFeedback=gameFeedback.filter(f=>{f.life-=dt;return f.life>0;});
+  if(gameRunning) gameRaf=requestAnimationFrame(gameLoop);
+}
+function spawnNote(){
+  const f=field(gameKey), di=gameProg.deg[gameSpawnIdx%gameProg.deg.length];
+  const n=f[di]; gameSpawnIdx++;
+  const lane=Math.floor(Math.random()*4), lW=gW/4;
+  gameNotes.push({deg:n.deg,chord:n.chord,fn:n.fn,color:n.color,x:lane*lW+lW/2,y:-50,lane,w:lW*0.82,h:54});
+}
+function drawGame(){
+  const ctx=gCtx; ctx.clearRect(0,0,gW,gH);
+  // Grid lines
+  ctx.strokeStyle="rgba(255,255,255,0.03)"; ctx.lineWidth=1;
+  for(let x=gW/4;x<gW;x+=gW/4){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,gH); ctx.stroke(); }
+  // Hit line
+  const g=ctx.createLinearGradient(0,0,gW,0);
+  g.addColorStop(0,"transparent"); g.addColorStop(.5,"rgba(52,211,153,.35)"); g.addColorStop(1,"transparent");
+  ctx.strokeStyle=g; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(0,gHitY); ctx.lineTo(gW,gHitY); ctx.stroke();
+  // Notes
+  gameNotes.forEach(n=>{
+    const x=n.x-n.w/2, y=n.y-n.h/2, r=12;
+    ctx.shadowColor=n.color; ctx.shadowBlur=10;
+    ctx.fillStyle="rgba(8,8,20,0.96)";
+    rrect(ctx,x,y,n.w,n.h,r); ctx.fill();
+    ctx.strokeStyle=n.color; ctx.lineWidth=2; ctx.shadowBlur=0;
+    rrect(ctx,x,y,n.w,n.h,r); ctx.stroke();
+    ctx.fillStyle=n.color; ctx.font="bold 19px -apple-system,monospace";
+    ctx.textAlign="center"; ctx.textBaseline="middle";
+    ctx.fillText(n.chord,n.x,n.y-(gameHints?8:4));
+    if(gameHints){ ctx.fillStyle=n.color+"88"; ctx.font="10px -apple-system"; ctx.fillText("→"+n.deg,n.x,n.y+10); }
+    ctx.fillStyle="rgba(120,120,120,.55)"; ctx.font="8px -apple-system";
+    ctx.fillText(n.fn.split("–")[0].trim(),n.x,n.y+(gameHints?22:14));
+  });
+  // Feedback
+  gameFeedback.forEach(fb=>{
+    ctx.globalAlpha=fb.life/500;
+    ctx.fillStyle=fb.hit?"#34d399":"#ef4444";
+    ctx.font="bold 18px -apple-system"; ctx.textAlign="center";
+    ctx.fillText(fb.hit?"✓ "+fb.chord:"✗",fb.x,fb.y);
+    ctx.globalAlpha=1;
+  });
+}
+function rrect(ctx,x,y,w,h,r){
+  ctx.beginPath(); ctx.moveTo(x+r,y);
+  ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath();
+}
+function gamePress(deg){
+  if(!gameRunning) return;
+  let best=null, bestDist=999;
+  gameNotes.forEach(n=>{ if(n.deg===deg){ const d=Math.abs(n.y-gHitY); if(d<90&&d<bestDist){bestDist=d;best=n;} }});
+  const btn=document.getElementById("gbtn-"+deg);
+  if(best){
+    gameNotes=gameNotes.filter(n=>n!==best);
+    gameCombo=Math.min(gameCombo+1,8);
+    gameScore+=10*Math.max(1,Math.floor(gameCombo/2));
+    gameHits++;
+    gameFeedback.push({x:best.x,y:gHitY-25,hit:true,chord:best.chord,life:500});
+    spawnHitParticles(best.x, gHitY, best.color, best.chord);
+    playChord(field(gameKey)[best.deg-1].semis,0.7);
+    if(btn){btn.style.background="#34d39930";btn.style.outline="2px solid #34d399";}
+    setTimeout(()=>{if(btn){btn.style.background="#ffffff10";btn.style.outline="none";}},150);
+    if(gameHits>=gameTarget){ setTimeout(()=>endGame(true),400); return; }
+  } else {
+    gameCombo=1;
+    if(btn){btn.style.background="#ef444420";btn.style.outline="2px solid #ef4444";}
+    setTimeout(()=>{if(btn){btn.style.background="#ffffff10";btn.style.outline="none";}},200);
+  }
+  updateHUD();
+}
+function recordMiss(){
+  gameCombo=1; gameHealth--; gameMisses++;
+  gameFeedback.push({x:gW/2,y:gHitY-30,hit:false,chord:"",life:600});
+  spawnMissEffect(gW/2, gHitY-30);
+  updateHUD();
+  if(gameHealth<=0) endGame(false);
+}
+function updateHUD(){
+  document.getElementById("g-score").textContent=gameScore;
+  document.getElementById("g-combo").textContent="×"+gameCombo;
+  document.getElementById("g-progress").textContent=gameHits+" / "+gameTarget;
+  document.getElementById("g-pbar").style.width=Math.min(100,(gameHits/gameTarget)*100)+"%";
+  for(let i=0;i<5;i++){ const h=document.getElementById("h"+i); if(h) h.style.background=i<gameHealth?"#ef4444":"#ffffff15"; }
+}
+function endGame(won){
+  gameRunning=false; cancelAnimationFrame(gameRaf);
+  const acc=gameHits+gameMisses>0?Math.round(gameHits/(gameHits+gameMisses)*100):0;
+  const rank=acc>=95?"S":acc>=80?"A":acc>=60?"B":acc>=40?"C":"D";
+  const rc={S:"#fbbf24",A:"#34d399",B:"#60a5fa",C:"#f97316",D:"#ef4444"}[rank];
+  document.getElementById("game-screen").style.display="none";
+  document.getElementById("game-menu").style.display="block";
+  const el=document.getElementById("game-last-score"); el.style.display="block";
+  el.innerHTML=`<div class="section" style="text-align:center">
+    <div style="font-size:80px;font-weight:900;color:${rc};font-family:monospace;text-shadow:0 0 40px ${rc}55">${rank}</div>
+    <div style="font-size:15px;font-weight:700;color:${won?"#34d399":"#f97316"};margin-bottom:10px">${won?"✅ Fase superada!":"💪 Tente novamente"}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px">
+      <div class="score-card"><div class="score-num" style="color:#34d399">${gameHits}</div><div class="score-lbl">ACERTOS</div></div>
+      <div class="score-card"><div class="score-num" style="color:#ef4444">${gameMisses}</div><div class="score-lbl">ERROS</div></div>
+      <div class="score-card"><div class="score-num" style="color:#f59e0b">${acc}%</div><div class="score-lbl">ACURÁCIA</div></div>
+    </div></div>`;
+}
+// Hook into showTab
+const _origShow=showTab;
+showTab=function(id){ _origShow(id); if(id==="jogo") initGameMenu(); };
+
+initCaged();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<!-- PAGE 5: JOGO (Guitar Hero) -->
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<div class="page" id="page-jogo">
+  <div id="game-menu">
+    <div class="page-header">
+      <div class="page-title" style="background:linear-gradient(90deg,#34d399,#10b981);-webkit-background-clip:text;-webkit-text-fill-color:transparent">
+        CHORD<br>HERO
+      </div>
+      <div class="page-sub">Identifice os graus no tempo certo</div>
+    </div>
+
+```
+<div class="section">
+  <div class="section-title">TOM</div>
+  <div class="keys" id="game-keys"></div>
+</div>
+
+<div class="section">
+  <div class="section-title">PROGRESSÃO</div>
+  <div class="prog-list" id="game-progs"></div>
+</div>
+
+<div class="section">
+  <div class="section-title">VELOCIDADE</div>
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <button onclick="startGame(1)" ontouchstart="evt(event,'gameSpeed1')"
+      style="padding:13px;border-radius:13px;border:1px solid #34d39933;
+      background:#34d39910;color:#34d399;font-size:14px;font-weight:700;text-align:left">
+      🌱 Iniciante — Notas lentas + dicas
+    </button>
+    <button onclick="startGame(2)" ontouchstart="evt(event,'gameSpeed2')"
+      style="padding:13px;border-radius:13px;border:1px solid #f59e0b33;
+      background:#f59e0b10;color:#f59e0b;font-size:14px;font-weight:700;text-align:left">
+      ⚡ Normal — Sem dicas
+    </button>
+    <button onclick="startGame(3)" ontouchstart="evt(event,'gameSpeed3')"
+      style="padding:13px;border-radius:13px;border:1px solid #ef444433;
+      background:#ef444410;color:#ef4444;font-size:14px;font-weight:700;text-align:left">
+      🔥 Difícil — Rápido
+    </button>
+  </div>
+</div>
+
+<div id="game-last-score" style="display:none"></div>
+```
+
+  </div>
+
+  <div id="game-screen" style="display:none;position:fixed;inset:0;background:#060610;z-index:200;
+    display:none;flex-direction:column">
+    <!-- HUD -->
+    <div style="display:flex;justify-content:space-between;align-items:center;
+      padding:10px 14px;border-bottom:1px solid #ffffff08;background:#00000099;flex-shrink:0">
+      <div>
+        <div style="font-size:22px;font-weight:900;color:#34d399;font-family:monospace" id="g-score">0</div>
+        <div style="font-size:9px;color:#444;letter-spacing:1px">SCORE</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:11px;color:#888" id="g-progress">0 / 10</div>
+        <div style="background:#ffffff10;border-radius:4px;height:5px;width:120px;overflow:hidden;margin:4px 0">
+          <div style="height:100%;border-radius:4px;background:#34d399;transition:width.3s" id="g-pbar" style="width:0%"></div>
+        </div>
+        <div style="display:flex;gap:3px;justify-content:center">
+          <div style="width:8px;height:8px;border-radius:2px;background:#ef4444" id="h0"></div>
+          <div style="width:8px;height:8px;border-radius:2px;background:#ef4444" id="h1"></div>
+          <div style="width:8px;height:8px;border-radius:2px;background:#ef4444" id="h2"></div>
+          <div style="width:8px;height:8px;border-radius:2px;background:#ef4444" id="h3"></div>
+          <div style="width:8px;height:8px;border-radius:2px;background:#ef4444" id="h4"></div>
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:18px;font-weight:900;color:#f59e0b;font-family:monospace" id="g-combo">×1</div>
+        <div style="font-size:9px;color:#444;letter-spacing:1px">COMBO</div>
+      </div>
+    </div>
+    <!-- Canvas -->
+    <canvas id="game-canvas" style="flex:1;display:block"></canvas>
+    <!-- Buttons -->
+    <div style="background:#000000cc;border-top:1px solid #ffffff10;padding:8px 10px 20px;flex-shrink:0">
+      <div style="display:flex;gap:5px;margin-bottom:6px" id="g-btns-top"></div>
+      <div style="display:flex;gap:5px" id="g-btns-bot"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<!-- PAGE 6: MÚSICAS REAIS -->
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<div class="page" id="page-musicas">
+  <div class="page-header">
+    <div class="page-title" style="background:linear-gradient(90deg,#f472b6,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent">
+      MÚSICAS<br>GOSPEL
+    </div>
+    <div class="page-sub">Toque junto com o YouTube · graus sincronizados</div>
+  </div>
+
+  <div id="musicas-list"></div>
+
+  <!-- Song Player (hidden until song selected) -->
+
+  <div id="song-player" style="display:none;position:fixed;inset:0;background:#060610;z-index:300;
+    flex-direction:column;overflow-y:auto">
+
+```
+<!-- Header -->
+<div style="padding:12px 16px;border-bottom:1px solid #ffffff08;
+  display:flex;align-items:center;gap:12px;background:#060610;
+  position:sticky;top:0;z-index:10">
+  <button onclick="closeSongPlayer()" style="padding:8px 12px;border-radius:10px;
+    border:1px solid #ffffff15;background:transparent;color:#888;font-size:12px;cursor:pointer">
+    ← Voltar
+  </button>
+  <div style="flex:1">
+    <div style="font-size:15px;font-weight:700;color:#fff" id="sp-title">—</div>
+    <div style="font-size:11px;color:#888;margin-top:1px" id="sp-artist">—</div>
+  </div>
+  <div style="text-align:right">
+    <div style="font-size:11px;color:#555">Tom</div>
+    <div style="font-size:18px;font-weight:900;color:#f59e0b;font-family:monospace" id="sp-key">—</div>
+  </div>
+</div>
+
+<!-- YouTube embed -->
+<div style="background:#000;position:relative" id="sp-yt-wrap">
+  <div id="sp-yt-notice" style="padding:14px;background:#f59e0b0a;border-bottom:1px solid #f59e0b22;
+    font-size:12px;color:#f59e0b;text-align:center;display:none" id="sp-yt-notice">
+    ⚠️ Abra este arquivo no <strong>Safari</strong> para o YouTube carregar
+  </div>
+  <div id="sp-youtube" style="width:100%;height:200px"></div>
+  <div id="sp-sync-warn" style="position:absolute;bottom:8px;left:8px;right:8px;
+    background:#00000099;border-radius:8px;padding:8px 10px;
+    font-size:11px;color:#f59e0b;text-align:center;display:none">
+    ⚠️ Timestamps aproximados — use o editor para afinar
+  </div>
+</div>
+
+<!-- Progress + current chord -->
+<div style="padding:14px 16px">
+  <!-- Current beat display -->
+  <div style="background:#0a0a18;border-radius:18px;padding:18px;margin-bottom:14px;
+    border:1px solid #ffffff08;text-align:center" id="sp-beat-display">
+    <div style="font-size:11px;color:#555;letter-spacing:2px;margin-bottom:8px">PRÓXIMO ACORDE</div>
+    <div style="font-size:48px;font-weight:900;font-family:monospace;color:#fff" id="sp-current-chord">▶</div>
+    <div style="font-size:14px;color:#888;margin-top:4px" id="sp-current-fn">Inicie a música no player acima</div>
+    <!-- Falling notes preview -->
+    <div id="sp-notes-canvas-wrap" style="position:relative;height:80px;margin-top:10px;overflow:hidden;border-radius:10px;background:#ffffff05">
+      <canvas id="sp-mini-canvas" style="position:absolute;inset:0;width:100%;height:100%"></canvas>
+    </div>
+  </div>
+
+  <!-- Upcoming chords -->
+  <div style="margin-bottom:14px">
+    <div style="font-size:10px;color:#555;letter-spacing:2px;margin-bottom:8px">PRÓXIMOS</div>
+    <div style="display:flex;gap:8px" id="sp-upcoming"></div>
+  </div>
+
+  <!-- Manual sync fallback -->
+  <div id="sp-manual-wrap" style="margin-bottom:10px;display:none">
+    <button onclick="startManualSync()"
+      ontouchstart="this.ontouchstart=null;startManualSync()"
+      style="width:100%;padding:12px;border-radius:12px;border:1px solid #f59e0b33;
+      background:#f59e0b10;color:#f59e0b;font-size:13px;font-weight:700;cursor:pointer">
+      ▶ Simular progressão (sem YouTube)
+    </button>
+  </div>
+
+  <!-- Mic -->
+  <div class="ctrl-row" style="margin-bottom:10px">
+    <button class="btn-sec" id="sp-mic-btn"
+      ontouchstart="evt(event,'toggleSongMic')" onclick="toggleSongMic()"
+      style="flex:1;padding:14px">
+      🎙 Ativar microfone
+    </button>
+  </div>
+  <div class="mic-info" id="sp-mic-info">
+    <span id="sp-mic-txt">Toque no microfone para detectar seus acordes</span>
+    <div class="mic-bar" id="sp-mic-bar"><div class="mic-fill" id="sp-mic-fill"></div></div>
+  </div>
+
+  <!-- Score -->
+  <div class="score-row" style="margin-top:12px">
+    <div class="score-card">
+      <div class="score-num" id="sp-hits" style="color:#34d399">0</div>
+      <div class="score-lbl">ACERTOS</div>
+    </div>
+    <div class="score-card">
+      <div class="score-num" id="sp-streak" style="color:#f59e0b">0🔥</div>
+      <div class="score-lbl">SEQUÊNCIA</div>
+    </div>
+    <div class="score-card">
+      <div class="score-num" id="sp-acc" style="color:#60a5fa">—</div>
+      <div class="score-lbl">ACURÁCIA</div>
+    </div>
+  </div>
+
+  <!-- Editor hint -->
+  <div style="margin-top:14px;padding:12px 14px;background:#f472b60a;
+    border:1px solid #f472b622;border-radius:12px;font-size:12px;color:#aaa;line-height:1.7">
+    <strong style="color:#f472b6">📍 Timestamps imprecisos?</strong><br>
+    Toque em <strong style="color:#fff">Editar Sync</strong> para afinar os tempos
+    apertando um botão a cada troca de acorde enquanto a música toca.
+    <br><br>
+    <button onclick="openEditor()" style="padding:8px 16px;border-radius:10px;border:none;
+      background:#f472b622;color:#f472b6;font-size:12px;font-weight:700;cursor:pointer;width:100%">
+      ✏️ Editar Sync
+    </button>
+  </div>
+</div>
+```
+
+  </div>
+
+  <!-- Timestamp Editor (hidden) -->
+
+  <div id="ts-editor" style="display:none;position:fixed;inset:0;background:#060610;
+    z-index:400;flex-direction:column">
+    <div style="padding:12px 16px;border-bottom:1px solid #ffffff08;
+      display:flex;align-items:center;gap:12px;background:#060610">
+      <button onclick="closeEditor()" style="padding:8px 12px;border-radius:10px;
+        border:1px solid #ffffff15;background:transparent;color:#888;font-size:12px;cursor:pointer">
+        ← Fechar
+      </button>
+      <div style="font-size:14px;font-weight:700;color:#f472b6">Editor de Sync</div>
+    </div>
+    <div style="padding:16px;flex:1;overflow-y:auto">
+      <div style="font-size:12px;color:#aaa;margin-bottom:16px;line-height:1.8;
+        background:#f472b60a;border:1px solid #f472b622;border-radius:12px;padding:12px">
+        <strong style="color:#f472b6">Como usar:</strong><br>
+        1. Toque ▶ para iniciar a música<br>
+        2. Aperte <strong style="color:#fff">TAP</strong> a cada troca de acorde<br>
+        3. O app registra o timestamp automaticamente<br>
+        4. Toque Salvar quando terminar
+      </div>
+      <div id="ed-youtube" style="background:#000;border-radius:12px;overflow:hidden;margin-bottom:14px"></div>
+      <div style="display:flex;gap:10px;margin-bottom:14px">
+        <button id="ed-tap-btn"
+          ontouchstart="evt(event,'edTap')" onclick="edTap()"
+          style="flex:2;padding:20px;border-radius:14px;border:none;
+          background:linear-gradient(135deg,#f472b6,#ec4899);color:#fff;
+          font-size:20px;font-weight:900;letter-spacing:2px;cursor:pointer">
+          🥁 TAP
+        </button>
+        <button onclick="edReset()" style="flex:1;padding:20px;border-radius:14px;
+          border:1px solid #ffffff15;background:transparent;color:#888;font-size:13px;cursor:pointer">
+          Reset
+        </button>
+      </div>
+      <div id="ed-log" style="background:#0a0a18;border-radius:12px;padding:12px;
+        font-size:11px;color:#666;max-height:200px;overflow-y:auto;margin-bottom:14px">
+        Taps aparecerão aqui...
+      </div>
+      <button onclick="edSave()" style="width:100%;padding:14px;border-radius:14px;border:none;
+        background:linear-gradient(135deg,#34d399,#10b981);color:#000;
+        font-size:16px;font-weight:900;cursor:pointer">
+        💾 Salvar Timestamps
+      </button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
