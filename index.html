@@ -374,10 +374,11 @@ function field(key) {
 }
 
 const PROGS = [
-  {name:"1–5–6–4",deg:[0,4,5,3],label:"Gospel Clássico",color:"#f59e0b"},
-  {name:"2–5–1",  deg:[1,4,0],  label:"Resolução Igreja",color:"#3b82f6"},
-  {name:"1–4–5",  deg:[0,3,4],  label:"Base do Louvor",  color:"#10b981"},
-  {name:"6–4–1–5",deg:[5,3,0,4],label:"Adoração",        color:"#ec4899"},
+  {name:"1–5–6–4",deg:[0,4,5,3],label:"Gospel Clássico", color:"#f59e0b",feel:"A mais tocada nos ministérios"},
+  {name:"2–5–1",  deg:[1,4,0],  label:"Resolução Igreja",color:"#3b82f6",feel:"Sensação forte de chegada"},
+  {name:"1–4–5",  deg:[0,3,4],  label:"Base do Louvor",  color:"#10b981",feel:"Simples e poderosa"},
+  {name:"6–4–1–5",deg:[5,3,0,4],label:"Adoração",        color:"#ec4899",feel:"Vibe emocional e intensa"},
+  {name:"1–6–4–5",deg:[0,5,3,4],label:"Balada Gospel",   color:"#a78bfa",feel:"Muito usada em louvores lentos"},
 ];
 
 // ── AUDIO ─────────────────────────────────────────────────────────────────────
@@ -991,8 +992,18 @@ function renderEar1(el) {
   el.innerHTML=`
     <div class="section">
       <div class="section-title">NÍVEL 1 — RECONHEÇA O ACORDE</div>
-      <div style="font-size:12px;color:#888;margin-bottom:14px;line-height:1.7">
+      <div style="font-size:12px;color:#888;margin-bottom:12px;line-height:1.7">
         Ouça o acorde sintetizado e identifique o grau harmônico.
+      </div>
+      <div style="margin-bottom:12px">
+        <div style="font-size:10px;color:#555;letter-spacing:2px;margin-bottom:7px">TOM</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          ${KEYS.map(k=>`<button onclick="setEar1Key('${k}')"
+            style="padding:6px 12px;border-radius:9px;border:none;cursor:pointer;
+            font-size:13px;font-weight:700;transition:all.15s;
+            background:${earKey===k?'#34d399':'#0d0d1f'};
+            color:${earKey===k?'#000':'#666'}">${k}</button>`).join('')}
+        </div>
       </div>
       <div class="play-area" id="e1-area">
         <div style="font-size:32px;margin-bottom:10px">🎵</div>
@@ -1041,6 +1052,14 @@ function render1Buttons() {
     document.getElementById("e1-btns").appendChild(next);
   }
 }
+function setEar1Key(k) {
+  earKey = k;
+  earField = field(k);
+  earCurrent = null;
+  earAnswer = null;
+  renderEarLevel();
+}
+
 function e1Play() {
   const pool=earField;
   earCurrent=pool[Math.floor(Math.random()*pool.length)];
@@ -1080,8 +1099,19 @@ function renderEar2(el) {
   el.innerHTML=`
     <div class="section">
       <div class="section-title">NÍVEL 2 — IDENTIFIQUE A PROGRESSÃO</div>
-      <div style="font-size:12px;color:#888;margin-bottom:14px;line-height:1.7">
+      <div style="font-size:12px;color:#888;margin-bottom:12px;line-height:1.7">
         Ouça a progressão e identifique qual é. Os acordes acendem enquanto tocam.
+      </div>
+      <div style="margin-bottom:12px">
+        <div style="font-size:10px;color:#555;letter-spacing:2px;margin-bottom:7px">TOM</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px" id="e2-keys">
+          ${KEYS.map(k=>`<button onclick="setEar2Key('${k}')"
+            style="padding:6px 12px;border-radius:9px;border:none;cursor:pointer;
+            font-size:13px;font-weight:700;transition:all.15s;
+            background:${earKey===k?'#f59e0b':'#0d0d1f'};
+            color:${earKey===k?'#000':'#666'};
+            box-shadow:${earKey===k?'0 0 12px #f59e0b44':'none'}">${k}</button>`).join('')}
+        </div>
       </div>
       <div style="display:flex;gap:8px;margin-bottom:14px" id="e2-beats"></div>
       <div class="play-area" id="e2-area" style="min-height:80px">
@@ -1125,7 +1155,7 @@ function render2Opts() {
     }
     b.className=cls;
     b.innerHTML=`<div><span style="color:${p.color};font-size:16px;font-weight:900;font-family:monospace">${p.name}</span>
-      &nbsp;${p.label}</div><span style="font-size:11px;color:#555">${p.color}</span>`;
+      &nbsp;${p.label}</div><span style="font-size:11px;color:#555">${p.feel||''}</span>`;
     b.onclick=()=>e2Answer(p);
     el.appendChild(b);
   });
@@ -1139,6 +1169,28 @@ function render2Opts() {
     el.appendChild(next);
   }
 }
+function setEar2Key(k) {
+  earKey = k;
+  earField = field(k);
+  // Re-render key buttons
+  const el = document.getElementById("e2-keys");
+  if (el) {
+    el.querySelectorAll("button").forEach(btn => {
+      const isActive = btn.textContent === k;
+      btn.style.background = isActive ? "#f59e0b" : "#0d0d1f";
+      btn.style.color = isActive ? "#000" : "#666";
+      btn.style.boxShadow = isActive ? "0 0 12px #f59e0b44" : "none";
+    });
+  }
+  // Reset current progression
+  earAnswer = null;
+  earCurrentProg = null;
+  render2Beats(-1);
+  render2Opts();
+  const area = document.getElementById("e2-area");
+  if (area) area.innerHTML = `<div style="font-size:13px;color:#888">Tom ${k} selecionado — toque para ouvir</div>`;
+}
+
 function e2Play() {
   earCurrentProg=PROGS[Math.floor(Math.random()*PROGS.length)];
   earAnswer=null; earActiveBeat=-1;
@@ -2389,6 +2441,132 @@ showTab = function(id) {
 };
 
 
+
+// ════════════════════════════════════════════════════════════════
+// BANCO DE MÚSICAS GOSPEL
+// ════════════════════════════════════════════════════════════════
+const GOSPEL_DB = [
+  {
+    "id": "oceanos",
+    "title": "Oceanos",
+    "artist": "Hillsong PT",
+    "key": "D",
+    "bpm": 68,
+    "cifra": "[Intro]\nBm  A  D  G\n\n[Verso 1]\nBm                A              D\nTua voz me chama sobre as águas\nA                      G\nOnde os meus pés podem falhar\nBm              A          D\nE ali Te encontro no mistério\nA               G\nEm meio ao mar, confiarei\n\n[Refrão]\nG          D          A\nAo Teu nome clamarei\nG          D          A\nE além das ondas olharei\nG             D          A\nSe o mar crescer somente em Ti descansarei\nG    A    Bm  A  D  A  G\nPois eu sou Teu e Tu és meu\n\n[Verso 2]\nBm              A         D\nTua graça cobre os meus temores\n     A                G\nTua forte mão me guiará\nBm           A\nSe estou cercado pelo medo\nD               A        G\nTu és fiel, nunca vais falhar\n\n[Ponte]\nBm              G\nGuia-me para que em tudo em Ti confie\nD                          A\nSobre as águas eu caminhe\n             Bm\nPor onde quer que me chames\nG\nLeva-me mais fundo do que já estive\nD                    A\nE minha fé será mais firme\nBm      G       D     A\nSenhor, em Tua presença"
+  },
+  {
+    "id": "pra-sempre-santo",
+    "title": "Pra Sempre Santo",
+    "artist": "Gabriel Guedes",
+    "key": "C",
+    "bpm": 72,
+    "cifra": "[Obs: Capotraste na 1ª casa — Tom real: Db]\n[Cada acorde dura ~2 compassos]\n\n[Intro]\nC  F  Am  G  F\n\n[Verso 1]\nC                    F        C\nAs muitas gerações rendidas em louvor\nAm            G          F\nCantando ao Cordeiro uma canção\n\nC                 F          C\nOs que em Ti se foram e os que hão de crer\nAm            G          F\nCantando ao Cordeiro uma canção\n\n[Pré-Refrão]\nF              Am          G\nTeu nome é o mais alto, Teu nome é o maior\nAm                    F\nTeu nome é sobre todos\nF              Am       G\nOs tronos e domínios, governos e poderes\nAm              Dm\nTeu nome é sobre todos\n\n[Refrão]\nF           Am        G\nE os anjos clamam: Santo\nC              Am\nToda criação: Santo\nDm             G\nExaltado és: Santo\nC\nSanto pra sempre\n\nF           Am        G\nO Teu povo canta: Santo\nC              Am\nSim, ao Rei dos reis: Santo\nDm                 G\nTu sempre serás Santo\nC\nSanto pra sempre\n\n[Verso 2]\nC                  F          C\nQuem foi perdoado e redimido foi\nAm            G          F\nCante ao Cordeiro uma canção\n\nC                    F        C\nAquele que é livre e leva o Seu nome\nAm            G          F\nCante ao Cordeiro uma canção\nAm        G             F\nCantaremos para sempre, amém"
+  },
+  {
+    "id": "nenhum-maior",
+    "title": "Nenhum Maior",
+    "artist": "Fernandinho",
+    "key": "G",
+    "bpm": 74,
+    "cifra": "[Intro]\nG  D  Em  C\n\n[Verso 1]\nG                  D\nNenhum maior que Tu, Senhor\nEm                   C\nNão há nenhum como Tu\nG                 D\nDigno és de toda honra\nEm              C\nTodo louvor é Teu\n\nG                  D\nAcima de qualquer nome\nEm               C\nReinaste, reinas e vais reinar\nG              D\nAltíssimo, todo-poderoso\nEm            C\nDigno de adorar\n\n[Refrão]\nG           D\nSanto, és santo\nEm             C\nO céu e a terra Te adoram\nG          D\nSanto, és santo\nEm              C\nTeus atos são maravilhosos\n\n[Verso 2]\nG               D\nJamais poderá ser contado\nEm               C\nTudo o que fizeste por mim\nG             D\nTeu amor não tem comparação\nEm          C\nFiel és, Senhor, a mim"
+  },
+  {
+    "id": "bondade-de-deus",
+    "title": "Bondade de Deus",
+    "artist": "Ministério Zoe",
+    "key": "C",
+    "bpm": 76,
+    "cifra": "[Intro]\nC  G  Am  F\n\n[Verso 1]\nC                G\nAmo-Te, Senhor, minha força\nAm               F\nMeu rochedo e salvação\nC                    G\nMeu escudo, minha fortaleza\nAm                 F\nEm Ti, Senhor, confiarei\n\n[Refrão]\nC              G\nA bondade de Deus\nAm                F\nCorre atrás de mim todos os dias\nC              G\nA bondade de Deus\nAm                  F\nNão consigo parar de cantar\n\nC               G\nToda a minha vida\nAm               F\nOs Teus planos são bons\nC              G\nTu és fiel, Senhor\nAm             F\nTua graça me basta\n\n[Verso 2]\nC                G\nQuando a escuridão me cercava\nAm               F\nTu trouxeste a Tua luz\nC                  G\nQuando eu estava no vale\nAm              F\nTu me levantaste com amor"
+  },
+  {
+    "id": "ousado-amor",
+    "title": "Ousado Amor",
+    "artist": "Aline Barros",
+    "key": "G",
+    "bpm": 70,
+    "cifra": "[Intro]\nEm  C  G  D\n\n[Verso 1]\nEm                C\nAntes mesmo de existir\nG                D\nTu me escolheste em amor\nEm                 C\nAntes do início do mundo\nG                   D\nTeus olhos me viram por completo\n\nEm               C\nDeitado em fraqueza\nG                D\nTu me encontraste e me levantaste\nEm               C\nNão há sombra de dúvida\nG                 D\nQue Tu és fiel, Jesus\n\n[Refrão]\nEm              C\nOusado amor que não me larga\nG               D\nQue vai até a morte por mim\nEm              C\nOusado amor que não me larga\nG               D\nPerfeito amor que vence em mim\n\n[Verso 2]\nEm                C\nEm toda a minha vida\nG                D\nTua graça me alcançou\nEm               C\nNas alturas e no vale\nG                  D\nTeu amor nunca me abandonou"
+  },
+  {
+    "id": "lugar-secreto",
+    "title": "Lugar Secreto",
+    "artist": "Gabriela Rocha",
+    "key": "C",
+    "bpm": 68,
+    "cifra": "[Intro]\nC  G  Am  F\n\n[Verso]\nC                  G\nNo lugar secreto, junto a Ti\nAm               F\nNo altar do Eterno me prostro aqui\nC                G\nLonge do barulho do mundo\nAm              F\nPerto de Ti, Senhor\n\n[Pré-Refrão]\nAm              G\nAbre meus olhos\nF               C\nPara ver Tua glória\nAm             G\nEnche meu coração\nF              G\nCom Tua presença\n\n[Refrão]\nC               G\nEu me rendo a Ti\nAm              F\nQuebra tudo em mim\nC               G\nTransforma meu coração\nAm           F\nCom Teu amor, Senhor\n\n[Ponte]\nF              G\nEspírito Santo, vem\nAm             C\nEnche este lugar\nF             G\nCom Tua presença\nAm             C\nE Tua glória, Senhor"
+  },
+  {
+    "id": "espirito-santo",
+    "title": "Espírito Santo",
+    "artist": "Fernandinho",
+    "key": "A",
+    "bpm": 70,
+    "cifra": "[Intro]\nA  E  F#m  D\n\n[Verso 1]\nA                    E\nEspírito Santo, entra nesse lugar\nF#m               D\nCom Tua presença me envolve\nA                E\nEspírito Santo, vem nos transformar\nF#m               D\nCom Teu fogo nos consome\n\n[Pré-Refrão]\nF#m            E\nMais de Ti, menos de mim\nD               A\nÉ o desejo do meu coração\nF#m            E\nGuia os meus passos\nD               E\nLeva-me até Ti\n\n[Refrão]\nA               E\nVem, Espírito Santo\nF#m             D\nEnche este lugar\nA               E\nCom Tua glória, Senhor\nF#m             D\nVem nos transformar\n\nA               E\nVem, Espírito Santo\nF#m             D\nToma o controle aqui\nA                E\nMais de Ti eu preciso\nF#m           D\nJesus, só Tu"
+  },
+  {
+    "id": "e-o-senhor",
+    "title": "É o Senhor",
+    "artist": "Fernandinho",
+    "key": "A",
+    "bpm": 74,
+    "cifra": "[Intro]\nA  E  F#m  D\n\n[Verso 1]\nA                  E\nÉ o Senhor, é o Senhor\nF#m                    D\nQue ressuscitou, que venceu a morte\nA                  E\nÉ o Senhor, é o Senhor\nF#m                  D\nSentado no trono eterno\n\n[Pré-Refrão]\nF#m              E\nJoelhos dobro diante de Ti\nD                A\nQue és digno de adoração\nF#m              E\nA Teu nome toda língua confessar\nD             E\nJesus és o Senhor\n\n[Refrão]\nA               E\nAleluia, aleluia\nF#m             D\nAo Cordeiro da vitória\nA               E\nAleluia, aleluia\nF#m             D\nPara sempre és o Senhor\n\n[Verso 2]\nA               E\nMorte foi vencida\nF#m             D\nO sepulcro está vazio\nA               E\nCristo ressurgiu\nF#m            D\nE eu vivo em Ti"
+  },
+  {
+    "id": "quao-grande",
+    "title": "Quão Grande és Tu",
+    "artist": "Soraya Moraes",
+    "key": "G",
+    "bpm": 66,
+    "cifra": "[Intro]\nG  C  G  D\n\n[Verso 1]\nG                    C\nSenhor, meu Deus, quando eu admirado\nG                 D\nContemplo as obras de Tuas mãos\nG                    C\nO céu estrelado, Teu universo\nG           D       G\nOs montes altos, o mar, o sol\n\n[Refrão]\nC               G\nEntão minh'alma canta\nD               G\nQuão grande és Tu\nC               G\nEntão minh'alma canta\nD               G\nQuão grande és Tu\n\n[Verso 2]\nG                 C\nE quando eu penso que Deus, o Seu Filho\nG                 D\nNão poupou, antes O deu por mim\nG               C\nPara morrer n'uma cruz vergonhosa\nG             D          G\nCristo morreu para me redimir\n\n[Ponte]\nC               G\nQuando Cristo voltar\nD               G\nCom júbilo e glória\nC              G\nE me levar pro lar\nD               G\nCantarei esta história"
+  },
+  {
+    "id": "tua-graca",
+    "title": "Tua Graça",
+    "artist": "Gabriela Rocha",
+    "key": "D",
+    "bpm": 72,
+    "cifra": "[Intro]\nD  G  A  D\n\n[Verso 1]\nD               G\nMilhões de vozes cantam\nA               D\nAo Rei dos reis louvor\nD               G\nMilhões de vidas salvas\nA              D\nPelo Teu amor, Senhor\n\nD                G\nTua graça salvou\nA               D\nE mudou minha vida\nD               G\nTua graça me guia\nA               D\nDia após dia\n\n[Refrão]\nG               D\nTua graça é maior\nA               D\nDo que todo meu pecado\nG               D\nTua graça é o que me move\nA              D\nTua graça me basta\n\n[Verso 2]\nD               G\nDe geração em geração\nA               D\nTua fidelidade dura\nD              G\nDo oriente ao ocidente\nA              D\nTua glória proclamo"
+  },
+  {
+    "id": "do-jeito-que-es",
+    "title": "Do Jeito Que És",
+    "artist": "Fernandinho",
+    "key": "G",
+    "bpm": 74,
+    "cifra": "[Intro]\nG  D  Em  C\n\n[Verso 1]\nG               D\nTe recebo do jeito que és\nEm              C\nCom Tua glória e Teu amor\nG               D\nTe recebo com mãos abertas\nEm              C\nSenhor, és bem-vindo aqui\n\n[Refrão]\nG               D\nDo jeito que és, Te adoro\nEm              C\nDo jeito que és, Te louvo\nG               D\nDo jeito que és, Te entrego\nEm              C\nTudo o que sou\n\n[Verso 2]\nG               D\nTu és o mesmo ontem e hoje\nEm              C\nFiel para sempre, Senhor\nG               D\nTeu amor nunca falha\nEm              C\nPerfeito és, ó Deus"
+  },
+  {
+    "id": "infinitamente-mais",
+    "title": "Infinitamente Mais",
+    "artist": "Fernandinho",
+    "key": "D",
+    "bpm": 72,
+    "cifra": "[Intro]\nD  A  Bm  G\n\n[Verso 1]\nD                A\nAcima do que posso imaginar\nBm              G\nAcima do que posso pensar\nD               A\nTeus planos para mim\nBm              G\nSão planos de bem, não de mal\n\n[Refrão]\nD               A\nInfinitamente mais\nBm              G\nDo que peço ou imagino\nD               A\nInfinitamente mais\nBm              G\nTeu amor me surpreende\n\nD               A\nSobre tudo que eu peço\nBm              G\nSobre tudo que eu penso\nD               A\nTua graça infinita\nBm              G\nSobre mim transborda"
+  },
+  {
+    "id": "me-rendo",
+    "title": "Me Rendo",
+    "artist": "Diante do Trono",
+    "key": "C",
+    "bpm": 68,
+    "cifra": "[Intro]\nC  G  Am  F\n\n[Verso 1]\nC               G\nMe rendo a Ti, ó Deus\nAm              F\nMe rendo a Ti, ó Deus\nC               G\nMe rendo a Ti, ó Deus\nAm           F\nMe rendo a Ti\n\n[Refrão]\nC               G\nToma meu coração\nAm              F\nTransforma minha mente\nC               G\nRenova minha vida\nAm              F\nCom Teu amor\n\n[Verso 2]\nC               G\nNão há outro lugar\nAm              F\nOnde quero estar\nC               G\nSenão em Tua presença\nAm             F\nPara sempre, Senhor"
+  },
+  {
+    "id": "ele-vive",
+    "title": "Cristo Me Ama",
+    "artist": "Cristina Mel",
+    "key": "G",
+    "bpm": 76,
+    "cifra": "[Intro]\nG  C  G  D\n\n[Verso 1]\nG               C\nCristo me ama, eu sei\nG               D\nPois a Bíblia diz assim\nG               C\nAs crianças são fracas\nG        D     G\nMas Ele é forte, assim\n\n[Refrão]\nG               C\nSim, Cristo me ama\nG               D\nSim, Cristo me ama\nG               C\nSim, Cristo me ama\nG     D     G\nA Bíblia diz assim"
+  },
+  {
+    "id": "pai-nosso",
+    "title": "Pai Nosso",
+    "artist": "Gabriela Rocha",
+    "key": "C",
+    "bpm": 70,
+    "cifra": "[Intro]\nAm  F  C  G\n\n[Verso 1]\nAm              F\nPai nosso que estás nos céus\nC               G\nSantificado seja o Teu nome\nAm              F\nVenha o Teu reino\nC               G\nSeja feita a Tua vontade\n\nAm              F\nAssim na terra\nC               G\nComo é no céu\nAm              F\nAssim na terra\nC               G\nComo é no céu\n\n[Refrão]\nC               G\nGlória, honra e poder\nAm              F\nSão Teus, Senhor\nC               G\nGlória, honra e poder\nAm              F\nSão Teus, Senhor"
+  }
+];
 // ════════════════════════════════════════════════════════════════
 // MODULE 8: REPERTÓRIO
 // ════════════════════════════════════════════════════════════════
@@ -2417,7 +2595,9 @@ function normalizeNote(n) {
 }
 
 function chordRoot(chord) {
-  // Extract root note from chord symbol
+  // Strict: must be a valid chord symbol, not a word that starts with A-G
+  // Valid: C, Dm, F#m, G7, Am7, Bm, etc.
+  if (!/^[A-G][#b]?(m|maj|min|dim|aug|sus|add)?(\d)?(\/[A-G][#b]?)?$/.test(chord)) return null;
   const m = chord.match(/^([A-G][b#]?)/);
   return m ? normalizeNote(m[1]) : null;
 }
@@ -2451,27 +2631,44 @@ function parseCifraLines(raw, key) {
     const trimmed = line.trim();
     if (!trimmed) { result.push({ type:'empty' }); return; }
 
-    // Check if line is a chord line (mostly chords, few other chars)
+    // Section headers like [Intro], [Verso 1]
+    if (/^\[/.test(trimmed)) {
+      result.push({ type:'section', text: trimmed });
+      return;
+    }
+
+    // A chord token must:
+    // 1. Match the chord regex
+    // 2. Be a known chord pattern (not just any capitalized word)
+    // 3. Be short (max 6 chars) — "Cantando" is not a chord
+    const CHORD_PATTERN = /^[A-G][#b]?(m|maj|min|dim|aug|sus|add)?(\d)?(\/[A-G][#b]?)?$/;
+
     const words = trimmed.split(/\s+/);
     let chordCount = 0;
     const parsedChords = [];
 
     words.forEach(w => {
-      const root = chordRoot(w);
-      if (root) {
-        chordCount++;
-        const deg = chordToDegree(w, key);
-        parsedChords.push({ original: w, degree: deg,
-          color: deg ? CLR[deg-1] : "#888" });
+      // Must match strict chord pattern AND be short
+      if (w.length <= 6 && CHORD_PATTERN.test(w)) {
+        const root = chordRoot(w);
+        if (root) {
+          chordCount++;
+          const deg = chordToDegree(w, key);
+          parsedChords.push({ original: w, degree: deg,
+            color: deg ? CLR[deg-1] : "#888" });
+        }
       }
     });
 
-    const isChordLine = chordCount > 0 && chordCount >= words.length * 0.5;
+    // A chord line: more than half the words are chords AND has at least 1 chord
+    // Also require the line has no long words (lyrics have long words)
+    const hasLongWords = words.some(w => w.length > 6);
+    const isChordLine = chordCount > 0 
+      && chordCount >= words.length * 0.5
+      && !hasLongWords;
 
     if (isChordLine) {
       result.push({ type:'chords', chords: parsedChords, raw: trimmed });
-    } else if (/^\[/.test(trimmed)) {
-      result.push({ type:'section', text: trimmed });
     } else {
       result.push({ type:'lyrics', text: trimmed });
     }
@@ -2481,67 +2678,179 @@ function parseCifraLines(raw, key) {
 }
 
 // ── RENDER CIFRA ──
+// Renders chord+lyric pairs like professional cifra sites
+// Chords appear directly above the syllable where they change
 // mode: 'degrees' | 'both' | 'chords'
 function renderParsedLines(lines, mode, container) {
   container.innerHTML = "";
 
-  lines.forEach(line => {
+  // Group chord lines with the following lyric line
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+
     if (line.type === 'empty') {
-      container.appendChild(document.createElement('br'));
-      return;
+      const br = document.createElement('div');
+      br.style.height = "10px";
+      container.appendChild(br);
+      i++; continue;
     }
 
     if (line.type === 'section') {
       const el = document.createElement('div');
-      el.style.cssText = "color:#f59e0b;font-weight:700;font-size:13px;margin:12px 0 4px;letter-spacing:1px";
+      el.style.cssText = "color:#f59e0b;font-weight:700;font-size:13px;"+
+        "margin:14px 0 6px;letter-spacing:1px";
       el.textContent = line.text;
       container.appendChild(el);
-      return;
+      i++; continue;
     }
 
     if (line.type === 'lyrics') {
       const el = document.createElement('div');
-      el.style.cssText = "color:#ccc;font-size:14px;line-height:1.6;font-family:-apple-system,sans-serif";
+      el.style.cssText = "color:#ccc;font-size:14px;line-height:1.8;"+
+        "font-family:-apple-system,sans-serif;margin-bottom:4px";
       el.textContent = line.text;
       container.appendChild(el);
-      return;
+      i++; continue;
     }
 
     if (line.type === 'chords') {
-      const row = document.createElement('div');
-      row.style.cssText = "display:flex;flex-wrap:wrap;gap:8px;margin:6px 0";
+      // Look ahead for lyric line
+      const nextLine = lines[i+1];
+      const hasLyric = nextLine && nextLine.type === 'lyrics';
+      const lyricText = hasLyric ? nextLine.text : '';
 
-      line.chords.forEach(c => {
-        const chip = document.createElement('div');
-        chip.style.cssText = `display:inline-flex;flex-direction:column;align-items:center;
-          min-width:36px;padding:4px 8px;border-radius:8px;
-          background:${c.color}18;border:1px solid ${c.color}44`;
+      if (!hasLyric) {
+        // No lyric — show chords as chips row
+        const row = document.createElement('div');
+        row.style.cssText = "display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 8px";
+        line.chords.forEach(c => {
+          row.appendChild(makeChordChip(c, mode));
+        });
+        container.appendChild(row);
+        i++; continue;
+      }
 
-        // Degree on top (big, colored)
-        if (mode === 'degrees' || mode === 'both') {
-          const deg = document.createElement('div');
-          deg.style.cssText = `font-size:${mode==='degrees'?20:16}px;font-weight:900;
-            color:${c.color};font-family:monospace;line-height:1`;
-          deg.textContent = c.degree || "?";
-          chip.appendChild(deg);
+      // Pair chord line with lyric line — align chord above syllable
+      // Parse the raw chord line to get positions
+      const rawChordLine = line.raw || '';
+      const wrapper = document.createElement('div');
+      wrapper.style.cssText = "font-family:monospace;font-size:14px;"+
+        "line-height:1;margin-bottom:8px;overflow-x:auto;white-space:nowrap";
+
+      // Build interleaved chord+lyric display
+      // We use position-based alignment from the raw chord line
+      const chordRow   = document.createElement('div');
+      const lyricRow   = document.createElement('div');
+      chordRow.style.cssText = "display:flex;align-items:flex-end;flex-wrap:nowrap;"+
+        "min-height:32px;margin-bottom:2px";
+      lyricRow.style.cssText = "color:#ccc;font-size:14px;font-family:-apple-system,sans-serif;"+
+        "white-space:pre-wrap;word-break:break-word;line-height:1.6";
+
+      // Split lyric into segments, one per chord
+      // Use chord positions in raw line to determine lyric split points
+      const chords = line.chords;
+
+      if (chords.length === 0) {
+        lyricRow.textContent = lyricText;
+        wrapper.appendChild(lyricRow);
+        container.appendChild(wrapper);
+        i += 2; continue;
+      }
+
+      // Calculate approx char positions from raw chord line
+      const positions = [];
+      let searchFrom = 0;
+      chords.forEach(c => {
+        const pos = rawChordLine.indexOf(c.original, searchFrom);
+        if (pos >= 0) {
+          positions.push(pos);
+          searchFrom = pos + c.original.length;
+        } else {
+          positions.push(searchFrom);
         }
-
-        // Chord below (small, grey)
-        if (mode === 'chords' || mode === 'both') {
-          const ch = document.createElement('div');
-          ch.style.cssText = `font-size:${mode==='chords'?14:10}px;
-            color:${mode==='chords'?c.color:"#888"};
-            font-family:monospace;line-height:1;margin-top:${mode==='both'?2:0}px`;
-          ch.textContent = c.original;
-          chip.appendChild(ch);
-        }
-
-        row.appendChild(chip);
       });
 
-      container.appendChild(row);
+      // Split lyric at proportional positions
+      const lyricLen = lyricText.length;
+      const rawLen   = Math.max(rawChordLine.length, 1);
+
+      const lyricSegments = [];
+      for (let ci = 0; ci < chords.length; ci++) {
+        const startChar = Math.round((positions[ci] / rawLen) * lyricLen);
+        const endChar   = ci + 1 < chords.length
+          ? Math.round((positions[ci+1] / rawLen) * lyricLen)
+          : lyricLen;
+        lyricSegments.push(lyricText.slice(startChar, endChar) || ' ');
+      }
+
+      // Build chord+lyric pairs
+      chords.forEach((c, ci) => {
+        const seg = lyricSegments[ci] || ' ';
+        const minW = Math.max(seg.length * 8.5, 28);
+
+        const pair = document.createElement('span');
+        pair.style.cssText = `display:inline-flex;flex-direction:column;
+          align-items:flex-start;min-width:${minW}px;vertical-align:bottom`;
+
+        // Chord chip
+        const chip = makeChordChip(c, mode, true);
+        chip.style.marginBottom = "3px";
+        pair.appendChild(chip);
+
+        // Lyric segment
+        const lyr = document.createElement('span');
+        lyr.style.cssText = "color:#ccc;font-size:14px;font-family:-apple-system,sans-serif;"+
+          "white-space:pre;display:block;line-height:1.5";
+        lyr.textContent = seg;
+        pair.appendChild(lyr);
+
+        chordRow.appendChild(pair);
+      });
+
+      // Append remaining lyric if any
+      const lastEnd = lyricSegments.reduce((a,s)=>a+s.length,0);
+      if (lastEnd < lyricText.length) {
+        const rem = document.createElement('span');
+        rem.style.cssText = "color:#ccc;font-size:14px;font-family:-apple-system,sans-serif;"+
+          "white-space:pre;align-self:flex-end;padding-bottom:0";
+        rem.textContent = lyricText.slice(lastEnd);
+        chordRow.appendChild(rem);
+      }
+
+      wrapper.appendChild(chordRow);
+      container.appendChild(wrapper);
+      i += 2; // skip lyric line since we consumed it
+      continue;
     }
-  });
+
+    i++;
+  }
+}
+
+function makeChordChip(c, mode, compact=false) {
+  const chip = document.createElement('span');
+  chip.style.cssText = `display:inline-flex;flex-direction:column;align-items:center;
+    padding:${compact?'2px 6px':'4px 8px'};border-radius:7px;
+    background:${c.color}18;border:1px solid ${c.color}44;
+    min-width:${compact?24:36}px;`;
+
+  if (mode === 'degrees' || mode === 'both') {
+    const deg = document.createElement('span');
+    deg.style.cssText = `font-size:${compact?14:18}px;font-weight:900;
+      color:${c.color};font-family:monospace;line-height:1`;
+    deg.textContent = c.degree || "?";
+    chip.appendChild(deg);
+  }
+  if (mode === 'chords' || mode === 'both') {
+    const ch = document.createElement('span');
+    ch.style.cssText = `font-size:${compact?9:11}px;
+      color:${mode==='chords'?c.color:"#777"};
+      font-family:monospace;line-height:1;margin-top:1px`;
+    ch.textContent = c.original;
+    chip.appendChild(ch);
+  }
+  return chip;
 }
 
 // ── STATE ──
@@ -2814,6 +3123,7 @@ function openSongEditor(songId) {
   }
 
   document.getElementById("rep-editor").style.display = "flex";
+  setTimeout(initDBSearch, 50);
 }
 
 function closeEditor() {
@@ -2944,71 +3254,63 @@ function toSlug(str) {
 }
 
 async function fetchCifra() {
-  const query = document.getElementById("ed-search-query").value.trim();
+  const query  = document.getElementById("ed-search-query").value.trim();
   if (!query) return;
-
+  const artist = document.getElementById("ed-artist").value.trim();
+  const full   = artist ? `${query} ${artist}` : query;
   const status  = document.getElementById("fetch-status");
   const results = document.getElementById("fetch-results");
-  status.textContent  = "🔍 Buscando...";
-  results.innerHTML   = "";
+  status.textContent = "";
 
-  // Build candidate URLs from Bananas
-  const titleInput  = document.getElementById("ed-title").value.trim();
-  const artistInput = document.getElementById("ed-artist").value.trim();
-  
-  const titleSlug  = toSlug(query);
-  const artistSlug = artistInput ? toSlug(artistInput) : null;
+  // Bananas blocks all external fetches (403)
+  // Best approach: show direct links that open in Safari
+  // User copies the cifra text and returns to paste
+  const bananasSearch = `https://www.bananacifras.com/search?q=${encodeURIComponent(full)}`;
+  const bananasGuess  = `https://www.bananacifras.com/cifra/${toSlug(artist||'')}/${toSlug(query)}`;
+  const cifraclubSearch = `https://www.cifraclub.com.br/?q=${encodeURIComponent(full)}`;
 
-  // Try multiple URL patterns
-  const candidates = [];
-  if (artistSlug) {
-    candidates.push(`https://www.bananacifras.com/cifra/${artistSlug[0]}/${artistSlug}/${titleSlug}`);
-    candidates.push(`https://www.bananacifras.com/cifra/${artistSlug}/${titleSlug}`);
-  }
-  candidates.push(`https://www.bananacifras.com/cifra/${titleSlug}`);
+  results.innerHTML = `
+    <div style="background:#0a0a18;border:1px solid #34d39933;border-radius:14px;padding:14px">
+      <div style="font-size:11px;color:#34d399;font-weight:700;letter-spacing:1px;margin-bottom:12px">
+        LINKS ENCONTRADOS
+      </div>
 
-  // Use allorigins CORS proxy to fetch
-  let found = false;
-  for (const url of candidates) {
-    try {
-      status.textContent = `🔍 Tentando ${url.split('/').slice(-2).join('/')}...`;
-      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-      const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(8000) });
-      const data = await res.json();
-      
-      if (data.contents && data.contents.length > 500) {
-        const cifra = extractCifraFromHTML(data.contents);
-        if (cifra && cifra.length > 50) {
-          found = true;
-          status.textContent = "✅ Cifra encontrada!";
-          showFetchResult(cifra, url);
-          break;
-        }
-      }
-    } catch(e) {
-      // try next
-    }
-  }
+      <a href="${bananasSearch}" target="_blank"
+        style="display:flex;align-items:center;gap:10px;padding:12px;border-radius:11px;
+        background:#34d39910;border:1px solid #34d39933;text-decoration:none;margin-bottom:8px">
+        <div style="font-size:22px">🍌</div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:700;color:#34d399">Buscar no Bananas</div>
+          <div style="font-size:11px;color:#888;margin-top:2px">"${full}"</div>
+        </div>
+        <div style="color:#34d399;font-size:16px">↗</div>
+      </a>
 
-  if (!found) {
-    status.textContent = "Não encontrado automaticamente";
-    // Show manual links as fallback
-    results.innerHTML = `
-      <div style="background:#f59e0b0a;border:1px solid #f59e0b22;border-radius:12px;
-        padding:12px;font-size:12px;color:#aaa;line-height:1.8">
-        <strong style="color:#f59e0b">Tente manualmente:</strong><br>
-        <a href="https://www.bananacifras.com/search?q=${encodeURIComponent(query)}"
-          target="_blank" style="color:#34d399">
-          🍌 Buscar "${query}" no Bananas ↗
-        </a><br>
-        <a href="https://www.cifraclub.com.br/?q=${encodeURIComponent(query)}"
-          target="_blank" style="color:#60a5fa">
-          🎸 Buscar no Cifra Club ↗
-        </a><br><br>
-        <span style="color:#666">Abra o link, copie o texto da cifra e use a aba
-        <strong style="color:#fff">✂️ Colar texto</strong></span>
-      </div>`;
-  }
+      <a href="${cifraclubSearch}" target="_blank"
+        style="display:flex;align-items:center;gap:10px;padding:12px;border-radius:11px;
+        background:#60a5fa10;border:1px solid #60a5fa33;text-decoration:none;margin-bottom:12px">
+        <div style="font-size:22px">🎸</div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:700;color:#60a5fa">Buscar no Cifra Club</div>
+          <div style="font-size:11px;color:#888;margin-top:2px">"${full}"</div>
+        </div>
+        <div style="color:#60a5fa;font-size:16px">↗</div>
+      </a>
+
+      <div style="background:#ffffff08;border-radius:10px;padding:10px 12px">
+        <div style="font-size:11px;color:#f59e0b;font-weight:700;margin-bottom:6px">
+          📋 COMO IMPORTAR
+        </div>
+        <div style="font-size:12px;color:#888;line-height:1.8">
+          1. Toque num link acima → abre no Safari<br>
+          2. Encontre a música e abra a cifra<br>
+          3. Selecione tudo o texto (<strong style="color:#fff">⋯ → Selecionar tudo</strong>)<br>
+          4. Copie (<strong style="color:#fff">Copiar</strong>)<br>
+          5. Volte aqui → aba <strong style="color:#34d399">✂️ Colar texto</strong> → cole
+        </div>
+      </div>
+    </div>`;
+  status.textContent = "";
 }
 
 function extractCifraFromHTML(html) {
@@ -3100,6 +3402,180 @@ function autoDetectKey(text) {
     const sel = document.getElementById("ed-key");
     if (sel) sel.value = match[1];
   }
+}
+
+
+// ── EMBEDDED BROWSER ──
+let browserSite = 'bananas';
+
+function setBrowserSite(site) {
+  browserSite = site;
+  document.getElementById("site-bananas").style.background   = site==='bananas'   ? '#34d399' : 'transparent';
+  document.getElementById("site-bananas").style.color        = site==='bananas'   ? '#000' : '#666';
+  document.getElementById("site-bananas").style.border       = site==='bananas'   ? 'none' : '1px solid #ffffff15';
+  document.getElementById("site-cifraclub").style.background = site==='cifraclub' ? '#60a5fa' : 'transparent';
+  document.getElementById("site-cifraclub").style.color      = site==='cifraclub' ? '#000' : '#666';
+  document.getElementById("site-cifraclub").style.border     = site==='cifraclub' ? 'none' : '1px solid #ffffff15';
+
+  const iframe = document.getElementById("cifra-browser");
+  if (site === 'bananas') {
+    iframe.src = "https://www.bananacifras.com/cifra/gospel";
+    document.getElementById("browser-url-label").textContent = "bananacifras.com/cifra/gospel";
+  } else {
+    iframe.src = "https://www.cifraclub.com.br";
+    document.getElementById("browser-url-label").textContent = "cifraclub.com.br";
+  }
+}
+
+function openBrowser() {
+  const q = document.getElementById("ed-search-query").value.trim();
+  if (!q) return;
+  const iframe = document.getElementById("cifra-browser");
+  const artist = document.getElementById("ed-artist").value.trim();
+  const full = artist ? `${q} ${artist} cifra` : `${q} cifra`;
+
+  if (browserSite === 'bananas') {
+    const url = `https://www.bananacifras.com/search?q=${encodeURIComponent(q)}`;
+    iframe.src = url;
+    document.getElementById("browser-url-label").textContent = url;
+  } else {
+    const url = `https://www.cifraclub.com.br/?q=${encodeURIComponent(q)}`;
+    iframe.src = url;
+    document.getElementById("browser-url-label").textContent = url;
+  }
+}
+
+function updateBrowserUrl(iframe) {
+  try {
+    const url = iframe.contentWindow.location.href;
+    document.getElementById("browser-url-label").textContent = url.replace('https://','');
+  } catch(e) {
+    // cross-origin — can't read URL, that's ok
+  }
+}
+
+function extractCifra() {
+  const iframe = document.getElementById("cifra-browser");
+  const status = document.getElementById("fetch-status");
+
+  try {
+    // Try to read iframe content directly (same-origin only)
+    const doc = iframe.contentDocument || iframe.contentWindow.document;
+    const text = doc.body.innerText || doc.body.textContent;
+
+    if (text && text.length > 100) {
+      // Parse and show
+      document.getElementById("ed-cifra-raw").value = text;
+      setImportTab('manual');
+      parseChords();
+      status.textContent = "✅ Cifra extraída!";
+      return;
+    }
+  } catch(e) {
+    // Cross-origin block — expected for external sites
+  }
+
+  // Cross-origin blocked — show instruction overlay
+  status.textContent = "";
+  document.getElementById("fetch-results").innerHTML = `
+    <div style="background:#f59e0b0a;border:1px solid #f59e0b33;border-radius:12px;
+      padding:12px 14px;font-size:12px;color:#aaa;line-height:1.8">
+      <div style="font-size:11px;color:#f59e0b;font-weight:700;margin-bottom:6px">
+        ⚠️ SITE BLOQUEOU O ACESSO
+      </div>
+      O ${browserSite==='bananas'?'Bananas':'Cifra Club'} bloqueia leitura por outros apps.<br><br>
+      <strong style="color:#fff">Alternativa mais rápida:</strong><br>
+      1. Na página da cifra, toque na barra de endereço<br>
+      2. Selecione e copie a URL<br>
+      3. Cole abaixo e toque Carregar:<br><br>
+      <div style="display:flex;gap:6px">
+        <input id="manual-url-input" placeholder="Cole a URL aqui..."
+          style="flex:1;padding:8px;border-radius:8px;border:1px solid #ffffff15;
+          background:#0a0a18;color:#fff;font-size:12px;outline:none">
+        <button onclick="loadUrl()"
+          ontouchstart="this.ontouchstart=null;loadUrl()"
+          style="padding:8px 12px;border-radius:8px;border:none;
+          background:#f59e0b;color:#000;font-size:12px;font-weight:700;cursor:pointer">
+          Ir
+        </button>
+      </div>
+    </div>`;
+}
+
+function loadUrl() {
+  const url = document.getElementById("manual-url-input")?.value.trim();
+  if (!url) return;
+  const iframe = document.getElementById("cifra-browser");
+  iframe.src = url.startsWith('http') ? url : 'https://' + url;
+  document.getElementById("browser-url-label").textContent = url;
+  document.getElementById("fetch-results").innerHTML = "";
+}
+
+
+// ── DATABASE SEARCH ──
+function searchGospelDB(query) {
+  const el = document.getElementById("db-results");
+  if (!el) return;
+  const q = query.toLowerCase().trim();
+  const results = q
+    ? GOSPEL_DB.filter(s =>
+        s.title.toLowerCase().includes(q) ||
+        s.artist.toLowerCase().includes(q))
+    : GOSPEL_DB;
+
+  if (results.length === 0) {
+    el.innerHTML = `<div style="text-align:center;color:#555;font-size:12px;padding:16px">
+      Nenhuma música encontrada para "${query}"</div>`;
+    return;
+  }
+
+  el.innerHTML = "";
+  results.forEach(song => {
+    const card = document.createElement("div");
+    card.style.cssText = "display:flex;align-items:center;gap:10px;padding:11px 12px;"+
+      "border-radius:11px;background:#0a0a18;border:1px solid #ffffff08;cursor:pointer;"+
+      "transition:all.15s";
+    card.innerHTML = `
+      <div style="width:36px;height:36px;border-radius:8px;background:#34d39918;
+        border:1px solid #34d39933;display:flex;align-items:center;justify-content:center;
+        font-size:13px;font-weight:900;color:#34d399;flex-shrink:0">${song.key}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:700;color:#fff;
+          overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${song.title}</div>
+        <div style="font-size:11px;color:#666;margin-top:1px">${song.artist} · ${song.bpm} BPM</div>
+      </div>
+      <button onclick="event.stopPropagation();importFromDB('${song.id}')"
+        ontouchstart="event.stopPropagation();importFromDB('${song.id}')"
+        style="padding:7px 12px;border-radius:8px;border:none;
+        background:#34d399;color:#000;font-size:12px;font-weight:700;
+        cursor:pointer;flex-shrink:0">
+        + Usar
+      </button>`;
+    card.onclick = () => importFromDB(song.id);
+    el.appendChild(card);
+  });
+}
+
+function importFromDB(songId) {
+  const song = GOSPEL_DB.find(s => s.id === songId);
+  if (!song) return;
+
+  // Fill in the form
+  document.getElementById("ed-title").value  = song.title;
+  document.getElementById("ed-artist").value = song.artist;
+  document.getElementById("ed-key").value    = song.key;
+  document.getElementById("ed-bpm").value    = song.bpm;
+  document.getElementById("ed-cifra-raw").value = song.cifra;
+  document.getElementById("ed-song-title").textContent = "Editar Música";
+
+  // Switch to manual tab and parse
+  setImportTab('manual');
+  parseChords();
+}
+
+// Show all songs on editor open
+function initDBSearch() {
+  searchGospelDB('');
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
@@ -3717,25 +4193,24 @@ initCaged();
     </button>
   </div>
 
-  <!-- AUTO: search and fetch -->
+  <!-- AUTO: search from built-in database -->
   <div id="import-auto">
-    <div style="font-size:11px;color:#888;margin-bottom:8px;line-height:1.6">
-      Digite o nome → app busca no Bananas e importa automaticamente
+    <div style="font-size:11px;color:#888;margin-bottom:10px;line-height:1.6">
+      Busca no banco de <strong style="color:#34d399">15 músicas gospel</strong> incluídas
     </div>
-    <div style="display:flex;gap:8px;margin-bottom:8px">
+    <div style="display:flex;gap:6px;margin-bottom:10px">
       <input id="ed-search-query" placeholder="Nome da música..."
         style="flex:1;padding:10px;border-radius:10px;border:1px solid #ffffff15;
         background:#0a0a18;color:#fff;font-size:13px;outline:none"
-        onkeydown="if(event.key==='Enter')fetchCifra()">
-      <button onclick="fetchCifra()" ontouchstart="this.ontouchstart=null;fetchCifra()"
-        style="padding:10px 14px;border-radius:10px;border:none;
-        background:#34d399;color:#000;font-size:13px;font-weight:700;cursor:pointer">
-        Buscar
-      </button>
+        oninput="searchGospelDB(this.value)">
     </div>
-    <div id="fetch-status" style="font-size:12px;color:#888;min-height:20px;
-      text-align:center;margin-bottom:8px"></div>
-    <div id="fetch-results" style="display:flex;flex-direction:column;gap:6px"></div>
+    <div id="db-results" style="display:flex;flex-direction:column;gap:6px;
+      max-height:300px;overflow-y:auto"></div>
+    <div style="margin-top:10px;padding:10px 12px;background:#ffffff05;
+      border-radius:10px;font-size:11px;color:#555;text-align:center">
+      Não achou? Use a aba <strong style="color:#ccc">✂️ Colar texto</strong>
+      para adicionar qualquer música manualmente
+    </div>
   </div>
 
   <!-- MANUAL: paste text -->
