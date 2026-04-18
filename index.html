@@ -3621,76 +3621,112 @@ function stopGameMic() {
   gameMicStream = null; gameMicAnalyser = null; gameMicRaf = null;
 }
 
+// Mic detection state — requires sustained signal to confirm a chord
+let _micCandidate = null;   // chord being "watched"
+let _micCandidateStart = 0; // when it first appeared
+let _micCandidateConf = 0;  // running confidence
+const MIC_SUSTAIN_MS  = 180; // must sustain this long before accepting
+const MIC_MIN_RMS     = 0.018; // minimum volume to even consider
+const MIC_MIN_CONF    = 0.72;  // minimum detection confidence (was 0.55)
+const MIC_COOLDOWN_MS = 900;   // full cooldown after a hit
+
 function gameMicTick() {
   if (!gameMicAnalyser || !gameRunning) return;
   gameMicRaf = requestAnimationFrame(gameMicTick);
 
-  // RMS level
+  // ── 1. RMS volume gate ──────────────────────────────────────────
   const td = new Float32Array(gameMicAnalyser.fftSize);
   gameMicAnalyser.getFloatTimeDomainData(td);
-  let rms = 0; for(let i=0;i<td.length;i++) rms+=td[i]*td[i];
-  rms = Math.sqrt(rms/td.length);
+  let rms = 0;
+  for (let i = 0; i < td.length; i++) rms += td[i] * td[i];
+  rms = Math.sqrt(rms / td.length);
 
   // Update level bar
   const lvlEl = document.getElementById("g-mic-level");
-  if (lvlEl) lvlEl.style.width = Math.min(100, rms*500) + "%";
+  if (lvlEl) lvlEl.style.width = Math.min(100, rms * 400) + "%";
 
-  if (rms < 0.008) {
+  // Hard gate — below threshold, reset candidate and exit
+  if (rms < MIC_MIN_RMS) {
+    _micCandidate = null;
     const chEl = document.getElementById("g-mic-chord");
-    if (chEl) chEl.style.color = "#444";
+    if (chEl) { chEl.textContent = "—"; chEl.style.color = "#444"; }
+    const cfEl = document.getElementById("g-mic-conf");
+    if (cfEl) cfEl.textContent = "0%";
     return;
   }
 
-  // Chord detection via FFT
+  // ── 2. Chord detection ──────────────────────────────────────────
   const fd = new Float32Array(gameMicAnalyser.frequencyBinCount);
   gameMicAnalyser.getFloatFrequencyData(fd);
   const f = field(gameKey);
-  const {best, score} = detectChord(fd, gameMicCtx.sampleRate, gameMicAnalyser.fftSize*2, f);
-  const conf = Math.min(1, score / 4.5);
+  const {best, score} = detectChord(fd, gameMicCtx.sampleRate, gameMicAnalyser.fftSize * 2, f);
+  const conf = Math.min(1, score / 5.0); // stricter normalizer
 
-  // Update monitor display
-  const chEl  = document.getElementById("g-mic-chord");
-  const cfEl  = document.getElementById("g-mic-conf");
-  if (chEl && best) {
-    chEl.textContent = best.chord;
-    chEl.style.color = conf > 0.6 ? best.color : conf > 0.35 ? "#f59e0b" : "#555";
+  // Update monitor
+  const chEl = document.getElementById("g-mic-chord");
+  const cfEl = document.getElementById("g-mic-conf");
+  if (chEl) {
+    chEl.textContent = best ? best.chord : "?";
+    chEl.style.color = conf > 0.72 ? (best ? best.color : "#34d399")
+                     : conf > 0.5  ? "#f59e0b" : "#555";
   }
-  if (cfEl) cfEl.textContent = Math.round(conf*100) + "%";
+  if (cfEl) cfEl.textContent = Math.round(conf * 100) + "%";
 
-  // Only trigger if confidence high enough
-  if (!best || conf < 0.55) return;
+  if (!best || conf < MIC_MIN_CONF) {
+    _micCandidate = null;
+    return;
+  }
 
-  // Debounce
+  // ── 3. Sustained detection — must hold same chord for MIC_SUSTAIN_MS ──
   const now = Date.now();
-  if (now - gameMicLastTrig < 450) return;
 
-  // Find matching note on screen — only the ONE closest to hit line
+  if (_micCandidate !== best.chord) {
+    // New chord detected — start watching it
+    _micCandidate = best.chord;
+    _micCandidateStart = now;
+    _micCandidateConf  = conf;
+    return;
+  }
+
+  // Same chord — update confidence
+  _micCandidateConf = Math.max(_micCandidateConf, conf);
+
+  // Not sustained long enough yet
+  if (now - _micCandidateStart < MIC_SUSTAIN_MS) return;
+
+  // ── 4. Cooldown after last hit ──────────────────────────────────
+  if (now - gameMicLastTrig < MIC_COOLDOWN_MS) return;
+
+  // ── 5. Find the ONE closest note on screen ──────────────────────
   let hit = null, bestDist = 999;
   gameNotes.forEach(n => {
-    if (n.chord === best.chord && !n.hitPending && n.y > 0 && n.y < gHitY + 80) {
+    if (n.chord === best.chord && !n.hitPending && n.y > 0 && n.y < gHitY + 60) {
       const d = Math.abs(n.y - gHitY);
       if (d < bestDist) { bestDist = d; hit = n; }
     }
   });
 
-  if (hit) {
-    gameMicLastTrig = now + 400; // extra debounce after hit
-    hit.hitPending = true; // mark immediately to block double-trigger
-    setTimeout(() => {
-      gameNotes = gameNotes.filter(n => n !== hit);
-    }, 50);
-    gameCombo = Math.min(gameCombo+1, 8);
-    gameScore += 10 * Math.max(1, Math.floor(gameCombo/2));
-    gameHits++;
-    gameFeedback.push({x:hit.x, y:gHitY-25, hit:true, chord:hit.chord, life:500});
-    spawnHitParticles(hit.x, gHitY, hit.color, hit.chord);
-    playChord(field(gameKey)[hit.deg-1].semis, 0.5);
-    // Flash the detected chord in monitor
-    if (chEl) { chEl.style.color = "#34d399"; chEl.textContent = "✓ "+hit.chord; }
-    setTimeout(() => { if(chEl) chEl.textContent = best ? best.chord : "—"; }, 400);
-    updateHUD();
-    if (gameHits >= gameTarget) setTimeout(()=>endGame(true), 400);
-  }
+  if (!hit) return;
+
+  // ── 6. Register hit ────────────────────────────────────────────
+  gameMicLastTrig = now;
+  _micCandidate   = null; // reset so same chord needs to be re-sustained
+  hit.hitPending  = true;
+
+  setTimeout(() => { gameNotes = gameNotes.filter(n => n !== hit); }, 50);
+
+  gameCombo  = Math.min(gameCombo + 1, 8);
+  gameScore += 10 * Math.max(1, Math.floor(gameCombo / 2));
+  gameHits++;
+  gameFeedback.push({ x: hit.x, y: gHitY - 25, hit: true, chord: hit.chord, life: 600 });
+  spawnHitParticles(hit.x, gHitY, hit.color, hit.chord);
+  playChord(field(gameKey)[hit.deg - 1].semis, 0.4);
+
+  if (chEl) { chEl.style.color = "#34d399"; chEl.textContent = "✓ " + hit.chord; }
+  setTimeout(() => { if (chEl && gameMicAnalyser) chEl.textContent = "—"; }, 500);
+
+  updateHUD();
+  if (gameHits >= gameTarget) setTimeout(() => endGame(true), 400);
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
