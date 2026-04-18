@@ -3611,28 +3611,49 @@ function gameMicTick() {
   if (!gameMicAnalyser || !gameRunning) return;
   gameMicRaf = requestAnimationFrame(gameMicTick);
 
-  // RMS check
+  // RMS level
   const td = new Float32Array(gameMicAnalyser.fftSize);
   gameMicAnalyser.getFloatTimeDomainData(td);
   let rms = 0; for(let i=0;i<td.length;i++) rms+=td[i]*td[i];
   rms = Math.sqrt(rms/td.length);
-  if (rms < 0.01) return;
 
-  // Chord detection
+  // Update level bar
+  const lvlEl = document.getElementById("g-mic-level");
+  if (lvlEl) lvlEl.style.width = Math.min(100, rms*500) + "%";
+
+  if (rms < 0.008) {
+    const chEl = document.getElementById("g-mic-chord");
+    if (chEl) chEl.style.color = "#444";
+    return;
+  }
+
+  // Chord detection via FFT
   const fd = new Float32Array(gameMicAnalyser.frequencyBinCount);
   gameMicAnalyser.getFloatFrequencyData(fd);
   const f = field(gameKey);
   const {best, score} = detectChord(fd, gameMicCtx.sampleRate, gameMicAnalyser.fftSize*2, f);
-  if (!best || score < 4.0) return;
+  const conf = Math.min(1, score / 4.5);
+
+  // Update monitor display
+  const chEl  = document.getElementById("g-mic-chord");
+  const cfEl  = document.getElementById("g-mic-conf");
+  if (chEl && best) {
+    chEl.textContent = best.chord;
+    chEl.style.color = conf > 0.6 ? best.color : conf > 0.35 ? "#f59e0b" : "#555";
+  }
+  if (cfEl) cfEl.textContent = Math.round(conf*100) + "%";
+
+  // Only trigger if confidence high enough
+  if (!best || conf < 0.55) return;
 
   // Debounce
   const now = Date.now();
-  if (now - gameMicLastTrig < 500) return;
+  if (now - gameMicLastTrig < 450) return;
 
   // Find matching note on screen
   let hit = null, bestDist = 999;
   gameNotes.forEach(n => {
-    if (n.chord === best.chord && n.y > 0 && n.y < gHitY + 60) {
+    if (n.chord === best.chord && n.y > 0 && n.y < gHitY + 80) {
       const d = Math.abs(n.y - gHitY);
       if (d < bestDist) { bestDist = d; hit = n; }
     }
@@ -3647,6 +3668,9 @@ function gameMicTick() {
     gameFeedback.push({x:hit.x, y:gHitY-25, hit:true, chord:hit.chord, life:500});
     spawnHitParticles(hit.x, gHitY, hit.color, hit.chord);
     playChord(field(gameKey)[hit.deg-1].semis, 0.5);
+    // Flash the detected chord in monitor
+    if (chEl) { chEl.style.color = "#34d399"; chEl.textContent = "✓ "+hit.chord; }
+    setTimeout(() => { if(chEl) chEl.textContent = best ? best.chord : "—"; }, 400);
     updateHUD();
     if (gameHits >= gameTarget) setTimeout(()=>endGame(true), 400);
   }
@@ -3725,6 +3749,8 @@ async function startGame(lv){
   // Show mic indicator in HUD
   const modeLbl = document.getElementById("g-mode-lbl");
   if (modeLbl) modeLbl.textContent = gameMicMode ? "🎙 MIC" : "COMBO";
+  const micMon = document.getElementById("g-mic-monitor");
+  if (micMon) micMon.style.display = gameMicMode ? "flex" : "none";
   // Hide buttons in mic mode
   if (gameMicMode) {
     const btnsTop = document.getElementById("g-btns-top");
@@ -3981,8 +4007,9 @@ initCaged();
   <div id="game-screen" style="display:none;position:fixed;inset:0;background:#060610;z-index:200;
     flex-direction:column;overflow:hidden">
     <!-- HUD -->
+    <div style="display:flex;flex-direction:column;flex-shrink:0">
     <div style="display:flex;justify-content:space-between;align-items:center;
-      padding:10px 14px;border-bottom:1px solid #ffffff08;background:#00000099;flex-shrink:0">
+      padding:10px 14px;border-bottom:1px solid #ffffff08;background:#00000099">
       <div>
         <div style="font-size:22px;font-weight:900;color:#34d399;font-family:monospace" id="g-score">0</div>
         <div style="font-size:9px;color:#444;letter-spacing:1px">SCORE</div>
@@ -4005,6 +4032,20 @@ initCaged();
         <div style="font-size:9px;color:#444;letter-spacing:1px" id="g-mode-lbl">COMBO</div>
       </div>
     </div>
+    <!-- Mic monitor bar (hidden when not in mic mode) -->
+    <div id="g-mic-monitor" style="display:none;padding:6px 14px;
+      background:#00000088;border-bottom:1px solid #34d39922;
+      display:none;align-items:center;gap:10px">
+      <div style="font-size:11px;color:#555;flex-shrink:0">🎙</div>
+      <div style="flex:1;background:#ffffff10;border-radius:3px;height:4px;overflow:hidden">
+        <div id="g-mic-level" style="height:100%;border-radius:3px;
+          background:#34d399;width:0%;transition:width.05s"></div>
+      </div>
+      <div id="g-mic-chord" style="font-size:13px;font-weight:900;
+        color:#555;font-family:monospace;min-width:60px;text-align:right">—</div>
+      <div id="g-mic-conf" style="font-size:10px;color:#444;min-width:32px">0%</div>
+    </div>
+    </div><!-- end hud wrapper -->
     <!-- Canvas -->
     <canvas id="game-canvas" style="flex:1;display:block;min-height:0"></canvas>
     <!-- Buttons -->
