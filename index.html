@@ -3580,9 +3580,25 @@ function initDBSearch() {
 
 
 // ── GAME MIC DETECTION ────────────────────────────────────────────────────────
-function startGameMic() {
-  // Called from startGame which is triggered by user tap — permission granted inline
-  // Actual setup happens in startGame via getUserMedia promise
+async function startGameMic() {
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!gameMicCtx || gameMicCtx.state === "closed") {
+      gameMicCtx = new AC();
+    }
+    if (gameMicCtx.state === "suspended") await gameMicCtx.resume();
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true, video:false});
+    gameMicStream = stream;
+    const src = gameMicCtx.createMediaStreamSource(stream);
+    gameMicAnalyser = gameMicCtx.createAnalyser();
+    gameMicAnalyser.fftSize = 4096;
+    gameMicAnalyser.smoothingTimeConstant = 0.4;
+    src.connect(gameMicAnalyser);
+    gameMicRaf = requestAnimationFrame(gameMicTick);
+  } catch(e) {
+    gameMicMode = false;
+    buildGameBtns();
+  }
 }
 
 function stopGameMic() {
@@ -3690,9 +3706,9 @@ function renderGameProgs(){
     el.appendChild(b);
   });
 }
-function gameSpeed1(){startGame(1);} function gameSpeed2(){startGame(2);} function gameSpeed3(){startGame(3);}
+async function gameSpeed1(){await startGame(1);} async function gameSpeed2(){await startGame(2);} async function gameSpeed3(){await startGame(3);}
 
-function startGame(lv){
+async function startGame(lv){
   gameLevel=lv; const cfg=GCFG[lv];
   gameHints=cfg.hints; gameTarget=cfg.target;
   gameScore=0; gameCombo=1; gameHits=0; gameMisses=0;
@@ -3728,30 +3744,7 @@ function startGame(lv){
   initD3Particles();
   gameRunning=true; gameLastTime=performance.now();
   gameRaf=requestAnimationFrame(gameLoop);
-  if (gameMicMode) {
-    // Mic must be requested synchronously from user gesture
-    navigator.mediaDevices.getUserMedia({audio:true, video:false})
-      .then(stream => {
-        const AC = window.AudioContext || window.webkitAudioContext;
-        gameMicCtx = new AC();
-        gameMicCtx.resume();
-        const src = gameMicCtx.createMediaStreamSource(stream);
-        gameMicAnalyser = gameMicCtx.createAnalyser();
-        gameMicAnalyser.fftSize = 4096;
-        gameMicAnalyser.smoothingTimeConstant = 0.4;
-        src.connect(gameMicAnalyser);
-        gameMicStream = stream;
-        gameMicRaf = requestAnimationFrame(gameMicTick);
-        // Show active indicator
-        const bl = document.getElementById("g-btns-bot");
-        if (bl) bl.querySelector("div").style.color = "#34d399";
-      })
-      .catch(() => {
-        // Permission denied — fall back to buttons
-        gameMicMode = false;
-        buildGameBtns();
-      });
-  }
+  if (gameMicMode) await startGameMic();
 }
 function buildGameBtns(){
   const f=field(gameKey);
@@ -3962,17 +3955,17 @@ initCaged();
 <div class="section">
   <div class="section-title">VELOCIDADE</div>
   <div style="display:flex;flex-direction:column;gap:8px">
-    <button onclick="startGame(1)" ontouchstart="evt(event,'gameSpeed1')"
+    <button ontouchstart="(async()=>{event.preventDefault();await startGame(1);})();" onclick="(async()=>{await startGame(1);})();"
       style="padding:13px;border-radius:13px;border:1px solid #34d39933;
       background:#34d39910;color:#34d399;font-size:14px;font-weight:700;text-align:left">
       🌱 Iniciante — Notas lentas + dicas
     </button>
-    <button onclick="startGame(2)" ontouchstart="evt(event,'gameSpeed2')"
+    <button ontouchstart="(async()=>{event.preventDefault();await startGame(2);})();" onclick="(async()=>{await startGame(2);})();"
       style="padding:13px;border-radius:13px;border:1px solid #f59e0b33;
       background:#f59e0b10;color:#f59e0b;font-size:14px;font-weight:700;text-align:left">
       ⚡ Normal — Sem dicas
     </button>
-    <button onclick="startGame(3)" ontouchstart="evt(event,'gameSpeed3')"
+    <button ontouchstart="(async()=>{event.preventDefault();await startGame(3);})();" onclick="(async()=>{await startGame(3);})();"
       style="padding:13px;border-radius:13px;border:1px solid #ef444433;
       background:#ef444410;color:#ef4444;font-size:14px;font-weight:700;text-align:left">
       🔥 Difícil — Rápido
