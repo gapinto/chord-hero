@@ -178,6 +178,14 @@ padding:12px 14px;margin-bottom:14px;font-size:12px;color:#aaa;line-height:1.8}
     <div class="tab-icon">🎤</div>
     <div class="tab-lbl">MÚSICAS</div>
   </button>
+  <button class="tab-btn" style="--tc:#34d399" onclick="showTab('plano')">
+    <div class="tab-icon">📚</div>
+    <div class="tab-lbl">PLANO</div>
+  </button>
+  <button class="tab-btn" style="--tc:#f59e0b" onclick="showTab('repertorio')">
+    <div class="tab-icon">📋</div>
+    <div class="tab-lbl">REPERTÓRIO</div>
+  </button>
   <div class="tab-bar-line" id="tabLine" style="--tc:#f59e0b;left:0;width:20%"></div>
 </div>
 
@@ -446,7 +454,7 @@ function detectChord(fData,sr,fftSz,targets) {
 }
 
 // ── TAB NAVIGATION ────────────────────────────────────────────────────────────
-const TABS = ["graus","harmonia","caged","ouvido","jogo","musicas"];
+const TABS = ["graus","harmonia","caged","ouvido","jogo","musicas","plano","repertorio"];
 function showTab(id) {
   TABS.forEach((t,i)=>{
     document.getElementById("page-"+t).classList.toggle("active",t===id);
@@ -454,10 +462,10 @@ function showTab(id) {
   });
   const idx = TABS.indexOf(id);
   const line = document.getElementById("tabLine");
-  const colors = ["#f59e0b","#ec4899","#60a5fa","#a78bfa","#34d399","#f472b6"];
+  const colors = ["#f59e0b","#ec4899","#60a5fa","#a78bfa","#34d399","#f472b6","#34d399","#f59e0b"];
   line.style.setProperty("--tc", colors[idx]);
-  line.style.left = (idx*16.66)+"%";
-  line.style.width = "16.66%";
+  line.style.left = (idx*12.5)+"%";
+  line.style.width = "12.5%";
   if (id==="ouvido" && !earInitialized) initEar();
 }
 function evt(e, fn) { e.preventDefault(); window[fn](); }
@@ -2072,6 +2080,1028 @@ showTab = function(id) {
   if (id === "musicas") renderMusicas();
 };
 
+
+// ════════════════════════════════════════════════════════════════
+// MODULE 7: PLANO DE ESTUDOS
+// ════════════════════════════════════════════════════════════════
+
+const STUDY_PLAN = [
+  {
+    week: 1,
+    title: "Conhecer os Graus",
+    color: "#34d399",
+    icon: "🌱",
+    goal: "Associar som com número",
+    days: [
+      { day:"Seg", task:"Aba GRAUS → Tom G → ouça os 7 graus um por um", tab:"graus", duration:10 },
+      { day:"Ter", task:"Repita com Tom C. Note a diferença de sentimento entre os graus", tab:"graus", duration:10 },
+      { day:"Qua", task:"Aba OUVIDO Nível 1 → 10 acordes. Foque nos graus 1, 4 e 5", tab:"ouvido", duration:10 },
+      { day:"Qui", task:"Aba GRAUS → Círculo das Quintas → toque em 4 tons diferentes", tab:"graus", duration:10 },
+      { day:"Sex", task:"OUVIDO Nível 1 → 15 acordes. Tente chegar a 70% de acerto", tab:"ouvido", duration:15 },
+      { day:"Sáb", task:"Revisão livre → explore qualquer aba por 15 min sem pressão", tab:null, duration:15 },
+    ],
+    tip: "Não tente memorizar tudo de uma vez. O cérebro aprende por repetição. 7 dias de 10 minutos valem mais que 1 hora no fim de semana.",
+    real_world: "Na sua próxima prática no violão, identifique os acordes de 1 música como graus. Ex: Oceanos em D = D(1) A(5) Bm(6) G(4)"
+  },
+  {
+    week: 2,
+    title: "Graus 1, 4 e 5",
+    color: "#f59e0b",
+    icon: "⚡",
+    goal: "Os 3 pilares do gospel",
+    days: [
+      { day:"Seg", task:"Aba OUVIDO → Jogo de Reflexo → Tom G → 20 perguntas", tab:"ouvido", duration:10 },
+      { day:"Ter", task:"HARMONIA → progressão 1–4–5 em G → ouça 5 minutos sem tocar", tab:"harmonia", duration:10 },
+      { day:"Qua", task:"HARMONIA → ative o mic → toque 1–4–5 no violão junto com o app", tab:"harmonia", duration:15 },
+      { day:"Qui", task:"Reflexo → tente os tons D e A além do G", tab:"ouvido", duration:10 },
+      { day:"Sex", task:"HARMONIA 1–5–6–4 com mic → acerte 5 acordes seguidos", tab:"harmonia", duration:15 },
+      { day:"Sáb", task:"JOGO → Iniciante → 1–5–6–4 em G → tente rank B ou melhor", tab:"jogo", duration:15 },
+    ],
+    tip: "O grau 5 (Dominante) cria tensão que PEDE resolução no grau 1. Você sente isso em toda música gospel. Fique atento a esse movimento quando tocar no ministério.",
+    real_world: "Pegue qualquer música que você já sabe tocar e identifique: qual é o grau 1? Qual é o 4? Qual é o 5? Scribble os números no caderno."
+  },
+  {
+    week: 3,
+    title: "Progressões Completas",
+    color: "#60a5fa",
+    icon: "🎶",
+    goal: "Reconhecer de ouvido",
+    days: [
+      { day:"Seg", task:"OUVIDO Nível 2 → ouça e identifique 10 progressões", tab:"ouvido", duration:10 },
+      { day:"Ter", task:"HARMONIA → todas as 4 progressões → 2 min cada com mic", tab:"harmonia", duration:15 },
+      { day:"Qua", task:"CAGED → forma G → veja onde ficam os dedos em 3 tons diferentes", tab:"caged", duration:10 },
+      { day:"Qui", task:"OUVIDO Nível 2 → tente acertar 4 de 5 progressões seguidas", tab:"ouvido", duration:10 },
+      { day:"Sex", task:"JOGO → Normal → qualquer progressão → tente rank A", tab:"jogo", duration:15 },
+      { day:"Sáb", task:"MÚSICAS → Oceanos ou Nenhum Maior → ouça e identifique a progressão", tab:"musicas", duration:15 },
+    ],
+    tip: "Quando ouvir uma música nova, sua primeira pergunta deve ser: 'qual é a progressão?' Não precisa saber de imediato — com o tempo você vai reconhecer em segundos.",
+    real_world: "No próximo ensaio do ministério, antes de tocar, pergunte ao líder: 'essa música está no tom X, progressão Y?' Isso mostra que você está aprendendo a linguagem da banda."
+  },
+  {
+    week: 4,
+    title: "Aplicação Real",
+    color: "#a78bfa",
+    icon: "✝️",
+    goal: "Tocar com confiança no ministério",
+    days: [
+      { day:"Seg", task:"MÚSICAS → Oceanos com YouTube → toque junto no violão com mic ativo", tab:"musicas", duration:15 },
+      { day:"Ter", task:"Reflexo → todos os 7 graus → mude de tom a cada 10 perguntas", tab:"ouvido", duration:10 },
+      { day:"Qua", task:"CAGED → forma E e A → troque de tom e veja onde fica cada acorde", tab:"caged", duration:10 },
+      { day:"Qui", task:"MÚSICAS → Nenhum Maior → tente acertar 10 acordes seguidos com mic", tab:"musicas", duration:15 },
+      { day:"Sex", task:"JOGO → Difícil → celebre qualquer rank que conseguir 🏆", tab:"jogo", duration:15 },
+      { day:"Sáb", task:"Escolha 1 música do seu ministério. Identifique: tom, progressão, graus. Anote.", tab:null, duration:20 },
+    ],
+    tip: "Depois de 4 semanas você tem a base. O que acontece a seguir é refinamento — quanto mais você tocar usando essa linguagem, mais natural fica. Não pare!",
+    real_world: "Você agora consegue: 1) Identificar progressões de ouvido. 2) Trocar de tom com segurança. 3) Conversar com a banda em graus. Isso é o que separa músicos iniciantes de músicos de ministério."
+  },
+];
+
+const PRACTICAL_TIPS = [
+  {
+    icon: "🎯",
+    title: "Como trocar de tom na hora",
+    color: "#f59e0b",
+    content: "O líder pediu pra subir meio tom? Não entre em pânico. Pense nos graus, não nos acordes. Se estava em G (1=G, 4=C, 5=D), agora em G# (1=G#, 4=C#, 5=D#). Os dedos mudam, a lógica é a mesma."
+  },
+  {
+    icon: "🗣️",
+    title: "Como falar com a banda",
+    color: "#60a5fa",
+    content: "Em vez de 'toca Mi menor depois de Sol', fale '6 depois do 1'. Todo músico que estuda teoria entende. É a linguagem universal da música — e você já está falando ela."
+  },
+  {
+    icon: "👂",
+    title: "Como aprender músicas novas rápido",
+    color: "#34d399",
+    content: "Ouça a música e identifique o primeiro acorde (grau 1 = tônica). Depois ouça as trocas. 80% das músicas gospel usam 1–5–6–4 ou 6–4–1–5. Se você reconhece uma, reconhece a outra."
+  },
+  {
+    icon: "🎸",
+    title: "CAGED no ministério",
+    color: "#a78bfa",
+    content: "Seu violonista líder toca em A (Lá) mas você prefere as formas de G. Use capo na 2ª casa e toque as formas de G — o resultado é A. O CAGED te dá essa liberdade: escolha a forma que seu dedilhado conhece melhor."
+  },
+  {
+    icon: "🔁",
+    title: "O segredo da consistência",
+    color: "#ec4899",
+    content: "10 minutos por dia supera 2 horas no fim de semana. O cérebro consolida memória durante o sono — pratique todo dia, mesmo que pouco. Use o app no ônibus, na fila, em qualquer lugar."
+  },
+  {
+    icon: "🏆",
+    title: "Como saber que você evoluiu",
+    color: "#f472b6",
+    content: "Semana 1: precisa contar os graus. Semana 2: reconhece 1, 4, 5 sem pensar. Mês 2: ouve uma música e sabe a progressão em 30 segundos. Mês 3: improvisa sobre a progressão. Cada etapa é real e mensurável."
+  },
+];
+
+// Progress tracking
+function getProgress() {
+  return JSON.parse(localStorage.getItem("gospel_progress") || "{}");
+}
+function saveProgress(data) {
+  localStorage.setItem("gospel_progress", JSON.stringify(data));
+}
+function toggleDay(weekIdx, dayIdx) {
+  const prog = getProgress();
+  const key = `w${weekIdx}d${dayIdx}`;
+  prog[key] = !prog[key];
+  saveProgress(prog);
+  renderPlano();
+}
+
+function renderPlano() {
+  const el = document.getElementById("plano-content");
+  if (!el) return;
+  const prog = getProgress();
+  el.innerHTML = "";
+
+  // ── Progress overview ──
+  const totalDays = STUDY_PLAN.reduce((a,w) => a + w.days.length, 0);
+  const doneDays  = Object.values(prog).filter(Boolean).length;
+  const pct = Math.round(doneDays / totalDays * 100);
+
+  const overview = document.createElement("div");
+  overview.className = "section";
+  overview.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div>
+        <div style="font-size:22px;font-weight:900;color:#34d399;font-family:monospace">${pct}%</div>
+        <div style="font-size:10px;color:#555;letter-spacing:1px">PROGRESSO TOTAL</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:22px;font-weight:900;color:#f59e0b;font-family:monospace">${doneDays}/${totalDays}</div>
+        <div style="font-size:10px;color:#555;letter-spacing:1px">DIAS CONCLUÍDOS</div>
+      </div>
+    </div>
+    <div style="background:#ffffff10;border-radius:8px;height:8px;overflow:hidden">
+      <div style="height:100%;border-radius:8px;
+        background:linear-gradient(90deg,#34d399,#10b981);
+        width:${pct}%;transition:width.5s"></div>
+    </div>
+    <div style="font-size:11px;color:#555;margin-top:8px;text-align:center">
+      ${pct===0?"Comece hoje — 10 min já fazem diferença 🎸":
+        pct<25?"Ótimo começo! Continue a sequência 💪":
+        pct<50?"Você está evoluindo! Já sente a diferença? ⚡":
+        pct<75?"Mais da metade! Os graus estão ficando automáticos 🎯":
+        pct<100?"Quase lá! Você é um músico diferente agora ✝️":
+        "Plano concluído! Você domina o campo harmônico gospel 🏆"}
+    </div>`;
+  el.appendChild(overview);
+
+  // ── Weekly plans ──
+  STUDY_PLAN.forEach((week, wi) => {
+    const doneInWeek = week.days.filter((_,di) => prog[`w${wi}d${di}`]).length;
+    const weekPct = Math.round(doneInWeek / week.days.length * 100);
+    const isUnlocked = wi === 0 || week.days.filter((_,di) => prog[`w${wi-1}d${di}`]).length >= 4;
+
+    const card = document.createElement("div");
+    card.className = "section";
+    card.style.borderColor = week.color + (isUnlocked ? "33" : "11");
+    card.style.opacity = isUnlocked ? "1" : "0.5";
+
+    card.innerHTML = `
+      <!-- Week header -->
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+        <div style="width:48px;height:48px;border-radius:14px;flex-shrink:0;
+          background:${week.color}22;border:1px solid ${week.color}44;
+          display:flex;align-items:center;justify-content:center;font-size:24px">
+          ${isUnlocked ? week.icon : "🔒"}
+        </div>
+        <div style="flex:1">
+          <div style="font-size:10px;color:${week.color};letter-spacing:2px;font-weight:700">
+            SEMANA ${week.week}
+          </div>
+          <div style="font-size:16px;font-weight:900;color:#fff">${week.title}</div>
+          <div style="font-size:11px;color:#666;margin-top:1px">Meta: ${week.goal}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-size:18px;font-weight:900;font-family:monospace;color:${week.color}">
+            ${doneInWeek}/${week.days.length}
+          </div>
+          <div style="font-size:9px;color:#555">dias</div>
+        </div>
+      </div>
+
+      <!-- Progress bar -->
+      <div style="background:#ffffff10;border-radius:4px;height:4px;overflow:hidden;margin-bottom:14px">
+        <div style="height:100%;border-radius:4px;background:${week.color};
+          width:${weekPct}%;transition:width.4s"></div>
+      </div>
+
+      ${!isUnlocked ? `<div style="text-align:center;font-size:12px;color:#555;padding:8px">
+        🔒 Complete 4 dias da semana anterior para desbloquear
+      </div>` : `
+      <!-- Daily tasks -->
+      <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:14px">
+        ${week.days.map((d,di) => {
+          const key = `w${wi}d${di}`;
+          const done = !!prog[key];
+          return `<div onclick="toggleDay(${wi},${di})"
+            style="display:flex;align-items:flex-start;gap:10px;padding:11px 12px;
+              border-radius:11px;cursor:pointer;transition:all.15s;
+              background:${done ? week.color+"18" : "#0a0a18"};
+              border:1px solid ${done ? week.color+"44" : "#ffffff08"}">
+            <div style="width:22px;height:22px;border-radius:6px;flex-shrink:0;margin-top:1px;
+              background:${done ? week.color : "transparent"};
+              border:2px solid ${done ? week.color : "#ffffff20"};
+              display:flex;align-items:center;justify-content:center;
+              font-size:12px;color:#000;transition:all.2s">
+              ${done ? "✓" : ""}
+            </div>
+            <div style="flex:1">
+              <div style="font-size:10px;color:${week.color};font-weight:700;margin-bottom:2px">
+                ${d.day} · ${d.duration} min
+              </div>
+              <div style="font-size:12px;color:${done?"#aaa":"#ccc"};line-height:1.5;
+                text-decoration:${done?"line-through":""}">${d.task}</div>
+            </div>
+            ${d.tab ? `<button onclick="event.stopPropagation();showTab('${d.tab}')"
+              style="flex-shrink:0;padding:6px 10px;border-radius:8px;border:none;
+              background:${week.color}22;color:${week.color};font-size:10px;
+              font-weight:700;cursor:pointer;margin-top:1px">
+              Abrir →
+            </button>` : ""}
+          </div>`;
+        }).join("")}
+      </div>
+
+      <!-- Tip -->
+      <div style="background:${week.color}0a;border:1px solid ${week.color}22;
+        border-radius:12px;padding:12px 14px;margin-bottom:10px">
+        <div style="font-size:10px;color:${week.color};font-weight:700;letter-spacing:1px;margin-bottom:5px">
+          💡 DICA DA SEMANA
+        </div>
+        <div style="font-size:12px;color:#aaa;line-height:1.7">${week.tip}</div>
+      </div>
+
+      <!-- Real world application -->
+      <div style="background:#ffffff05;border-radius:12px;padding:12px 14px">
+        <div style="font-size:10px;color:#888;font-weight:700;letter-spacing:1px;margin-bottom:5px">
+          🎸 APLIQUE NO MINISTÉRIO
+        </div>
+        <div style="font-size:12px;color:#888;line-height:1.7">${week.real_world}</div>
+      </div>
+      `}`;
+
+    el.appendChild(card);
+  });
+
+  // ── Practical tips ──
+  const tipsTitle = document.createElement("div");
+  tipsTitle.style.cssText = "font-size:10px;color:#555;letter-spacing:3px;padding:4px 0 12px;font-weight:700";
+  tipsTitle.textContent = "DICAS PRÁTICAS";
+  el.appendChild(tipsTitle);
+
+  PRACTICAL_TIPS.forEach(tip => {
+    const card = document.createElement("div");
+    card.className = "section";
+    card.style.borderColor = tip.color + "22";
+    card.innerHTML = `
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+        <div style="font-size:26px">${tip.icon}</div>
+        <div style="font-size:14px;font-weight:700;color:${tip.color}">${tip.title}</div>
+      </div>
+      <div style="font-size:13px;color:#aaa;line-height:1.8">${tip.content}</div>`;
+    el.appendChild(card);
+  });
+
+  // ── Reset button ──
+  const resetBtn = document.createElement("button");
+  resetBtn.style.cssText = `width:100%;padding:12px;border-radius:12px;
+    border:1px solid #ffffff10;background:transparent;color:#555;
+    font-size:12px;cursor:pointer;margin-bottom:20px`;
+  resetBtn.textContent = "↺ Resetar progresso";
+  resetBtn.onclick = () => {
+    if (confirm("Resetar todo o progresso?")) {
+      saveProgress({});
+      renderPlano();
+    }
+  };
+  el.appendChild(resetBtn);
+}
+
+// Hook showTab
+const _origShowTab3 = showTab;
+showTab = function(id) {
+  _origShowTab3(id);
+  if (id === "plano") renderPlano();
+};
+
+
+// ════════════════════════════════════════════════════════════════
+// MODULE 8: REPERTÓRIO
+// ════════════════════════════════════════════════════════════════
+
+// ── DATA MODEL ──
+// Culto: { id, name, date, songIds[] }
+// Song:  { id, title, artist, key, bpm, rawCifra, parsedLines[], notes, createdAt }
+
+function getRepData() {
+  return JSON.parse(localStorage.getItem("gospel_rep") || '{"songs":[],"cultos":[]}');
+}
+function saveRepData(data) {
+  localStorage.setItem("gospel_rep", JSON.stringify(data));
+}
+
+// ── CHORD DETECTION ──
+// All common chord names → normalized root
+const CHORD_RE = /\b([A-G][b#]?(?:m|maj|min|dim|aug|sus|add)?(?:2|4|5|6|7|9|11|13)?(?:\/[A-G][b#]?)?)\b/g;
+
+const NOTE_ENHARMONIC = {
+  "Db":"C#","Eb":"D#","Fb":"E","Gb":"F#","Ab":"G#","Bb":"A#","Cb":"B"
+};
+
+function normalizeNote(n) {
+  return NOTE_ENHARMONIC[n] || n;
+}
+
+function chordRoot(chord) {
+  // Extract root note from chord symbol
+  const m = chord.match(/^([A-G][b#]?)/);
+  return m ? normalizeNote(m[1]) : null;
+}
+
+function chordToMajor(chordStr) {
+  // Returns base type: maj or min or dim
+  if (/dim/.test(chordStr)) return "dim";
+  if (/m(?!aj)/.test(chordStr.replace(/^[A-G][b#]?/,''))) return "min";
+  return "maj";
+}
+
+function chordToDegree(chordStr, key) {
+  const root = chordRoot(chordStr);
+  if (!root) return null;
+  const keyOff = KOFF[key] || 0;
+  const rootOff = KOFF[normalizeNote(root)] ?? KOFF[root];
+  if (rootOff === undefined) return null;
+  const interval = ((rootOff - keyOff) + 12) % 12;
+  // Map interval to degree
+  const intervalMap = {0:1, 2:2, 4:3, 5:4, 7:5, 9:6, 11:7};
+  return intervalMap[interval] || null;
+}
+
+// ── PARSE CIFRA ──
+function parseCifraLines(raw, key) {
+  if (!raw || !raw.trim()) return [];
+  const lines = raw.split('\n');
+  const result = [];
+
+  lines.forEach(line => {
+    const trimmed = line.trim();
+    if (!trimmed) { result.push({ type:'empty' }); return; }
+
+    // Check if line is a chord line (mostly chords, few other chars)
+    const words = trimmed.split(/\s+/);
+    let chordCount = 0;
+    const parsedChords = [];
+
+    words.forEach(w => {
+      const root = chordRoot(w);
+      if (root) {
+        chordCount++;
+        const deg = chordToDegree(w, key);
+        parsedChords.push({ original: w, degree: deg,
+          color: deg ? CLR[deg-1] : "#888" });
+      }
+    });
+
+    const isChordLine = chordCount > 0 && chordCount >= words.length * 0.5;
+
+    if (isChordLine) {
+      result.push({ type:'chords', chords: parsedChords, raw: trimmed });
+    } else if (/^\[/.test(trimmed)) {
+      result.push({ type:'section', text: trimmed });
+    } else {
+      result.push({ type:'lyrics', text: trimmed });
+    }
+  });
+
+  return result;
+}
+
+// ── RENDER CIFRA ──
+// mode: 'degrees' | 'both' | 'chords'
+function renderParsedLines(lines, mode, container) {
+  container.innerHTML = "";
+
+  lines.forEach(line => {
+    if (line.type === 'empty') {
+      container.appendChild(document.createElement('br'));
+      return;
+    }
+
+    if (line.type === 'section') {
+      const el = document.createElement('div');
+      el.style.cssText = "color:#f59e0b;font-weight:700;font-size:13px;margin:12px 0 4px;letter-spacing:1px";
+      el.textContent = line.text;
+      container.appendChild(el);
+      return;
+    }
+
+    if (line.type === 'lyrics') {
+      const el = document.createElement('div');
+      el.style.cssText = "color:#ccc;font-size:14px;line-height:1.6;font-family:-apple-system,sans-serif";
+      el.textContent = line.text;
+      container.appendChild(el);
+      return;
+    }
+
+    if (line.type === 'chords') {
+      const row = document.createElement('div');
+      row.style.cssText = "display:flex;flex-wrap:wrap;gap:8px;margin:6px 0";
+
+      line.chords.forEach(c => {
+        const chip = document.createElement('div');
+        chip.style.cssText = `display:inline-flex;flex-direction:column;align-items:center;
+          min-width:36px;padding:4px 8px;border-radius:8px;
+          background:${c.color}18;border:1px solid ${c.color}44`;
+
+        // Degree on top (big, colored)
+        if (mode === 'degrees' || mode === 'both') {
+          const deg = document.createElement('div');
+          deg.style.cssText = `font-size:${mode==='degrees'?20:16}px;font-weight:900;
+            color:${c.color};font-family:monospace;line-height:1`;
+          deg.textContent = c.degree || "?";
+          chip.appendChild(deg);
+        }
+
+        // Chord below (small, grey)
+        if (mode === 'chords' || mode === 'both') {
+          const ch = document.createElement('div');
+          ch.style.cssText = `font-size:${mode==='chords'?14:10}px;
+            color:${mode==='chords'?c.color:"#888"};
+            font-family:monospace;line-height:1;margin-top:${mode==='both'?2:0}px`;
+          ch.textContent = c.original;
+          chip.appendChild(ch);
+        }
+
+        row.appendChild(chip);
+      });
+
+      container.appendChild(row);
+    }
+  });
+}
+
+// ── STATE ──
+let repCurrentSong = null;
+let repViewMode = 'degrees';
+let repEditingId = null;
+let repCurrentCultoId = null;
+
+// ── MAIN RENDER ──
+function renderRep() {
+  const el = document.getElementById("rep-content");
+  if (!el) return;
+  const data = getRepData();
+  el.innerHTML = "";
+
+  // Header actions
+  const actions = document.createElement('div');
+  actions.style.cssText = "display:flex;gap:8px;margin-bottom:16px";
+  actions.innerHTML = `
+    <button onclick="newCulto()" ontouchstart="this.ontouchstart=null;newCulto()"
+      style="flex:1;padding:12px;border-radius:12px;border:none;
+      background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;
+      font-size:13px;font-weight:700;cursor:pointer">
+      + Novo Culto
+    </button>
+    <button onclick="openSongEditor(null)" ontouchstart="this.ontouchstart=null;openSongEditor(null)"
+      style="flex:1;padding:12px;border-radius:12px;border:1px solid #34d39944;
+      background:#34d39910;color:#34d399;font-size:13px;font-weight:700;cursor:pointer">
+      + Nova Música
+    </button>`;
+  el.appendChild(actions);
+
+  // Info card if empty
+  if (data.songs.length === 0 && data.cultos.length === 0) {
+    const info = document.createElement('div');
+    info.className = 'info-card';
+    info.innerHTML = `
+      <strong style="color:#f59e0b">Como usar:</strong><br>
+      1. Crie um <strong style="color:#fff">Culto</strong> (ex: Domingo 23/06)<br>
+      2. Adicione músicas com a cifra do Cifra Club<br>
+      3. O app converte os acordes para <strong style="color:#34d399">graus</strong><br>
+      4. Visualize com grau em destaque para treinar enquanto toca<br><br>
+      <span style="color:#888">Tudo salvo offline no seu device.</span>`;
+    el.appendChild(info);
+    return;
+  }
+
+  // Cultos
+  if (data.cultos.length > 0) {
+    const title = document.createElement('div');
+    title.style.cssText = "font-size:10px;color:#555;letter-spacing:3px;margin-bottom:10px;font-weight:700";
+    title.textContent = "CULTOS";
+    el.appendChild(title);
+
+    data.cultos.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(culto => {
+      const songs = data.songs.filter(s => culto.songIds.includes(s.id));
+      const card = document.createElement('div');
+      card.className = 'section';
+      card.style.borderColor = '#f59e0b22';
+      card.innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div>
+            <div style="font-size:15px;font-weight:700;color:#fff">${culto.name}</div>
+            <div style="font-size:11px;color:#666;margin-top:1px">${formatDate(culto.date)} · ${songs.length} música${songs.length!==1?'s':''}</div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button onclick="addSongToCulto('${culto.id}')"
+              style="padding:6px 10px;border-radius:8px;border:1px solid #f59e0b33;
+              background:#f59e0b0a;color:#f59e0b;font-size:11px;cursor:pointer">+ Música</button>
+            <button onclick="deleteCulto('${culto.id}')"
+              style="padding:6px 10px;border-radius:8px;border:1px solid #ef444422;
+              background:transparent;color:#ef444466;font-size:11px;cursor:pointer">✕</button>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px" id="culto-songs-${culto.id}">
+          ${songs.length === 0 ?
+            '<div style="font-size:12px;color:#444;padding:8px 0">Nenhuma música adicionada</div>' :
+            songs.map((s,i) => `
+              <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;
+                border-radius:10px;background:#ffffff05;border:1px solid #ffffff08;cursor:pointer"
+                onclick="viewSong('${s.id}')">
+                <div style="width:22px;height:22px;border-radius:6px;
+                  background:#f59e0b22;border:1px solid #f59e0b44;
+                  display:flex;align-items:center;justify-content:center;
+                  font-size:11px;font-weight:900;color:#f59e0b;flex-shrink:0">${i+1}</div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:13px;font-weight:700;color:#fff;
+                    overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.title}</div>
+                  <div style="font-size:10px;color:#666;margin-top:1px">${s.artist||''} · Tom ${s.key}</div>
+                </div>
+                <div style="font-size:11px;color:#555">${s.key} ›</div>
+              </div>`).join('')}
+        </div>`;
+      el.appendChild(card);
+    });
+  }
+
+  // All songs library
+  if (data.songs.length > 0) {
+    const title = document.createElement('div');
+    title.style.cssText = "font-size:10px;color:#555;letter-spacing:3px;margin:16px 0 10px;font-weight:700";
+    title.textContent = "BIBLIOTECA";
+    el.appendChild(title);
+
+    data.songs.forEach(s => {
+      const card = document.createElement('div');
+      card.style.cssText = "display:flex;align-items:center;gap:12px;padding:13px 14px;margin-bottom:8px;"+
+        "border-radius:14px;border:1px solid #ffffff0a;background:#0d0d1f;cursor:pointer";
+      card.innerHTML = `
+        <div style="width:40px;height:40px;border-radius:10px;
+          background:#f59e0b18;border:1px solid #f59e0b33;flex-shrink:0;
+          display:flex;align-items:center;justify-content:center;font-size:18px">🎸</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:700;color:#fff;
+            overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.title}</div>
+          <div style="font-size:11px;color:#666;margin-top:2px">${s.artist||'—'} · Tom ${s.key}</div>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0">
+          <button onclick="event.stopPropagation();openSongEditor('${s.id}')"
+            style="padding:6px 9px;border-radius:8px;border:1px solid #ffffff15;
+            background:transparent;color:#888;font-size:11px;cursor:pointer">✎</button>
+          <div onclick="viewSong('${s.id}')"
+            style="padding:6px 9px;border-radius:8px;border:1px solid #f59e0b33;
+            background:#f59e0b0a;color:#f59e0b;font-size:11px;cursor:pointer">Ver →</div>
+        </div>`;
+      el.appendChild(card);
+    });
+  }
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr + 'T12:00:00');
+  return d.toLocaleDateString('pt-BR', { weekday:'long', day:'2-digit', month:'2-digit' });
+}
+
+// ── CULTO ACTIONS ──
+function newCulto() {
+  // Show inline form
+  const form = document.getElementById("new-culto-form");
+  if (!form) return;
+  // Set today's date as default
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById("culto-date-input").value = today;
+  document.getElementById("culto-name-input").value = "";
+  form.style.display = "block";
+  setTimeout(() => document.getElementById("culto-name-input").focus(), 100);
+}
+
+function cancelNewCulto() {
+  const form = document.getElementById("new-culto-form");
+  if (form) form.style.display = "none";
+}
+
+function confirmNewCulto() {
+  const name = document.getElementById("culto-name-input").value.trim();
+  const date = document.getElementById("culto-date-input").value;
+  if (!name) {
+    document.getElementById("culto-name-input").style.borderColor = "#ef4444";
+    return;
+  }
+  const data = getRepData();
+  data.cultos.push({
+    id: Date.now().toString(),
+    name,
+    date: date || new Date().toISOString().split('T')[0],
+    songIds: []
+  });
+  saveRepData(data);
+  cancelNewCulto();
+  renderRep();
+}
+
+function deleteCulto(id) {
+  // No confirm() - just delete with undo hint via re-render
+  const data = getRepData();
+  data.cultos = data.cultos.filter(c => c.id !== id);
+  saveRepData(data);
+  renderRep();
+}
+
+function addSongToCulto(cultoId) {
+  const data = getRepData();
+  const culto = data.cultos.find(c => c.id === cultoId);
+  if (!culto) return;
+  const available = data.songs.filter(s => !culto.songIds.includes(s.id));
+  if (available.length === 0) {
+    showRepAlert("Adicione músicas à biblioteca primeiro com '+ Nova Música'");
+    return;
+  }
+  // Show song picker modal
+  showSongPicker(available, (song) => {
+    culto.songIds.push(song.id);
+    saveRepData(data);
+    renderRep();
+  });
+}
+
+function showRepAlert(msg) {
+  const el = document.getElementById("rep-content");
+  if (!el) return;
+  const alert = document.createElement("div");
+  alert.style.cssText = "background:#ef444415;border:1px solid #ef444433;border-radius:12px;"+
+    "padding:12px 14px;font-size:13px;color:#ef4444;margin-bottom:10px;text-align:center";
+  alert.textContent = msg;
+  el.prepend(alert);
+  setTimeout(() => alert.remove(), 3000);
+}
+
+function showSongPicker(songs, onPick) {
+  // Create overlay picker
+  const overlay = document.createElement("div");
+  overlay.style.cssText = "position:fixed;inset:0;background:#00000099;z-index:500;"+
+    "display:flex;flex-direction:column;justify-content:flex-end";
+  
+  const sheet = document.createElement("div");
+  sheet.style.cssText = "background:#0d0d1f;border-radius:20px 20px 0 0;"+
+    "padding:16px;max-height:70vh;overflow-y:auto;"+
+    "border-top:1px solid #ffffff15";
+  
+  sheet.innerHTML = `<div style="font-size:11px;color:#555;letter-spacing:2px;
+    margin-bottom:12px;font-weight:700">ADICIONAR AO CULTO</div>`;
+  
+  songs.forEach(s => {
+    const btn = document.createElement("button");
+    btn.style.cssText = "width:100%;padding:13px 14px;border-radius:12px;border:none;"+
+      "background:#0a0a18;color:#fff;font-size:14px;text-align:left;"+
+      "margin-bottom:7px;display:flex;align-items:center;gap:10px;cursor:pointer;"+
+      "border:1px solid #ffffff08";
+    btn.innerHTML = `<div style="font-size:11px;color:#f59e0b;font-weight:700;
+      width:28px;text-align:center">${s.key}</div>
+      <div><div style="font-weight:700">${s.title}</div>
+      <div style="font-size:11px;color:#666;margin-top:1px">${s.artist||''}</div></div>`;
+    btn.onclick = () => { document.body.removeChild(overlay); onPick(s); };
+    sheet.appendChild(btn);
+  });
+  
+  const cancel = document.createElement("button");
+  cancel.style.cssText = "width:100%;padding:13px;border-radius:12px;border:none;"+
+    "background:#ffffff08;color:#888;font-size:14px;cursor:pointer;margin-top:4px";
+  cancel.textContent = "Cancelar";
+  cancel.onclick = () => document.body.removeChild(overlay);
+  sheet.appendChild(cancel);
+  
+  overlay.appendChild(sheet);
+  overlay.onclick = (e) => { if(e.target===overlay) document.body.removeChild(overlay); };
+  document.body.appendChild(overlay);
+}
+
+// ── SONG EDITOR ──
+function openSongEditor(songId) {
+  repEditingId = songId;
+  const data = getRepData();
+  const song = songId ? data.songs.find(s => s.id === songId) : null;
+
+  document.getElementById("ed-song-title").textContent = song ? "Editar Música" : "Nova Música";
+  document.getElementById("ed-title").value  = song?.title  || "";
+  document.getElementById("ed-artist").value = song?.artist || "";
+  document.getElementById("ed-key").value    = song?.key    || "G";
+  document.getElementById("ed-bpm").value    = song?.bpm    || "70";
+  document.getElementById("ed-cifra-raw").value = song?.rawCifra || "";
+  document.getElementById("ed-notes").value  = song?.notes  || "";
+  document.getElementById("ed-preview").style.display = "none";
+
+  // Update Cifra Club link with song title
+  if (song?.title) {
+    const q = encodeURIComponent(song.title);
+    document.getElementById("ed-cifraclub-link").href =
+      `https://www.cifraclub.com.br/${q.toLowerCase().replace(/%20/g,'-')}`;
+  }
+
+  document.getElementById("rep-editor").style.display = "flex";
+}
+
+function closeEditor() {
+  document.getElementById("rep-editor").style.display = "none";
+}
+
+function parseChords() {
+  const raw = document.getElementById("ed-cifra-raw").value;
+  const key = document.getElementById("ed-key").value;
+  if (!raw.trim()) { alert("Cole a cifra primeiro!"); return; }
+
+  const lines = parseCifraLines(raw, key);
+  const preview = document.getElementById("ed-preview");
+  const content = document.getElementById("ed-preview-content");
+  preview.style.display = "block";
+  renderParsedLines(lines, 'both', content);
+  preview.scrollIntoView({ behavior:'smooth' });
+}
+
+function saveSong() {
+  const title = document.getElementById("ed-title").value.trim();
+  if (!title) { alert("Digite o nome da música!"); return; }
+
+  const key     = document.getElementById("ed-key").value;
+  const raw     = document.getElementById("ed-cifra-raw").value;
+  const lines   = parseCifraLines(raw, key);
+  const data    = getRepData();
+
+  if (repEditingId) {
+    const idx = data.songs.findIndex(s => s.id === repEditingId);
+    if (idx >= 0) {
+      data.songs[idx] = { ...data.songs[idx], title, key,
+        artist:  document.getElementById("ed-artist").value.trim(),
+        bpm:     parseInt(document.getElementById("ed-bpm").value) || 70,
+        rawCifra: raw, parsedLines: lines,
+        notes:   document.getElementById("ed-notes").value.trim(),
+      };
+    }
+  } else {
+    data.songs.push({
+      id: Date.now().toString(), title, key,
+      artist:  document.getElementById("ed-artist").value.trim(),
+      bpm:     parseInt(document.getElementById("ed-bpm").value) || 70,
+      rawCifra: raw, parsedLines: lines,
+      notes:   document.getElementById("ed-notes").value.trim(),
+      createdAt: new Date().toISOString(),
+    });
+  }
+
+  saveRepData(data);
+  closeEditor();
+  renderRep();
+}
+
+// ── SONG VIEWER ──
+function viewSong(songId) {
+  const data = getRepData();
+  const song = data.songs.find(s => s.id === songId);
+  if (!song) return;
+  repCurrentSong = song;
+  repViewMode = 'degrees';
+
+  document.getElementById("vw-title").textContent = song.title;
+  document.getElementById("vw-meta").textContent  =
+    `${song.artist||''} · Tom ${song.key}${song.bpm ? ' · '+song.bpm+' BPM' : ''}`;
+
+  updateViewerContent();
+  document.getElementById("rep-viewer").style.display = "flex";
+}
+
+function closeViewer() {
+  document.getElementById("rep-viewer").style.display = "none";
+}
+
+function editCurrentSong() {
+  closeViewer();
+  if (repCurrentSong) openSongEditor(repCurrentSong.id);
+}
+
+function setViewMode(mode) {
+  repViewMode = mode;
+  ["degrees","both","chords"].forEach(m => {
+    const btn = document.getElementById("vw-mode-"+m);
+    if (!btn) return;
+    const active = m === mode;
+    btn.style.background = active ? "#f59e0b" : "transparent";
+    btn.style.color       = active ? "#000" : "#888";
+    btn.style.border      = active ? "none" : "1px solid #ffffff15";
+  });
+  updateViewerContent();
+}
+
+function updateViewerContent() {
+  if (!repCurrentSong) return;
+  const container = document.getElementById("vw-content");
+  const lines = repCurrentSong.parsedLines || parseCifraLines(repCurrentSong.rawCifra, repCurrentSong.key);
+  container.style.fontFamily = "monospace";
+  container.style.whiteSpace = "normal";
+  renderParsedLines(lines, repViewMode, container);
+}
+
+// Hook showTab
+const _origShowTab4 = showTab;
+showTab = function(id) {
+  _origShowTab4(id);
+  if (id === "repertorio") renderRep();
+};
+
+
+// ── CIFRA IMPORT ──
+let importTab = 'auto';
+
+function setImportTab(tab) {
+  importTab = tab;
+  document.getElementById("import-auto").style.display   = tab==='auto'   ? 'block' : 'none';
+  document.getElementById("import-manual").style.display = tab==='manual' ? 'block' : 'none';
+  document.getElementById("import-tab-auto").style.background   = tab==='auto'   ? '#34d399' : 'transparent';
+  document.getElementById("import-tab-auto").style.color        = tab==='auto'   ? '#000' : '#666';
+  document.getElementById("import-tab-manual").style.background = tab==='manual' ? '#34d399' : 'transparent';
+  document.getElementById("import-tab-manual").style.color      = tab==='manual' ? '#000' : '#666';
+}
+
+function toSlug(str) {
+  return str.toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-z0-9\s-]/g,'')
+    .trim().replace(/\s+/g,'-');
+}
+
+async function fetchCifra() {
+  const query = document.getElementById("ed-search-query").value.trim();
+  if (!query) return;
+
+  const status  = document.getElementById("fetch-status");
+  const results = document.getElementById("fetch-results");
+  status.textContent  = "🔍 Buscando...";
+  results.innerHTML   = "";
+
+  // Build candidate URLs from Bananas
+  const titleInput  = document.getElementById("ed-title").value.trim();
+  const artistInput = document.getElementById("ed-artist").value.trim();
+  
+  const titleSlug  = toSlug(query);
+  const artistSlug = artistInput ? toSlug(artistInput) : null;
+
+  // Try multiple URL patterns
+  const candidates = [];
+  if (artistSlug) {
+    candidates.push(`https://www.bananacifras.com/cifra/${artistSlug[0]}/${artistSlug}/${titleSlug}`);
+    candidates.push(`https://www.bananacifras.com/cifra/${artistSlug}/${titleSlug}`);
+  }
+  candidates.push(`https://www.bananacifras.com/cifra/${titleSlug}`);
+
+  // Use allorigins CORS proxy to fetch
+  let found = false;
+  for (const url of candidates) {
+    try {
+      status.textContent = `🔍 Tentando ${url.split('/').slice(-2).join('/')}...`;
+      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+      const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(8000) });
+      const data = await res.json();
+      
+      if (data.contents && data.contents.length > 500) {
+        const cifra = extractCifraFromHTML(data.contents);
+        if (cifra && cifra.length > 50) {
+          found = true;
+          status.textContent = "✅ Cifra encontrada!";
+          showFetchResult(cifra, url);
+          break;
+        }
+      }
+    } catch(e) {
+      // try next
+    }
+  }
+
+  if (!found) {
+    status.textContent = "Não encontrado automaticamente";
+    // Show manual links as fallback
+    results.innerHTML = `
+      <div style="background:#f59e0b0a;border:1px solid #f59e0b22;border-radius:12px;
+        padding:12px;font-size:12px;color:#aaa;line-height:1.8">
+        <strong style="color:#f59e0b">Tente manualmente:</strong><br>
+        <a href="https://www.bananacifras.com/search?q=${encodeURIComponent(query)}"
+          target="_blank" style="color:#34d399">
+          🍌 Buscar "${query}" no Bananas ↗
+        </a><br>
+        <a href="https://www.cifraclub.com.br/?q=${encodeURIComponent(query)}"
+          target="_blank" style="color:#60a5fa">
+          🎸 Buscar no Cifra Club ↗
+        </a><br><br>
+        <span style="color:#666">Abra o link, copie o texto da cifra e use a aba
+        <strong style="color:#fff">✂️ Colar texto</strong></span>
+      </div>`;
+  }
+}
+
+function extractCifraFromHTML(html) {
+  // Parse the HTML to extract chord content
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  
+  // Try common selectors for cifra content
+  const selectors = [
+    '.cifra_cnt', '.cifra-wrapper', '#cifra_tom',
+    'pre', '.chord-sheet', '[class*="chord"]',
+    '[class*="cifra"]', '[class*="lyric"]',
+    'article', '.song-content'
+  ];
+  
+  for (const sel of selectors) {
+    const el = doc.querySelector(sel);
+    if (el && el.textContent.trim().length > 100) {
+      return el.textContent.trim();
+    }
+  }
+  
+  // Fallback: extract text from body, filter for chord-like lines
+  const body = doc.body?.textContent || '';
+  const lines = body.split('\n').filter(l => {
+    const t = l.trim();
+    return t.length > 0 && t.length < 200;
+  });
+  
+  // Find the block that has chord patterns
+  const chordLines = lines.filter(l => /\b[A-G][#b]?(?:m|maj|dim|sus|add)?\d?\b/.test(l));
+  if (chordLines.length > 3) {
+    return lines.join('\n');
+  }
+  
+  return null;
+}
+
+function showFetchResult(cifra, sourceUrl) {
+  const results = document.getElementById("fetch-results");
+  const key = document.getElementById("ed-key").value;
+  
+  // Set the raw cifra
+  document.getElementById("ed-cifra-raw") && 
+    (document.getElementById("ed-cifra-raw").value = cifra);
+  
+  // Show preview card
+  results.innerHTML = `
+    <div style="background:#34d39910;border:1px solid #34d39933;border-radius:12px;padding:12px">
+      <div style="font-size:10px;color:#34d399;font-weight:700;letter-spacing:1px;margin-bottom:8px">
+        CIFRA IMPORTADA
+      </div>
+      <div style="font-size:11px;color:#888;margin-bottom:8px;
+        max-height:100px;overflow:hidden;font-family:monospace;line-height:1.6">
+        ${cifra.substring(0,300).replace(/</g,'&lt;')}...
+      </div>
+      <div style="display:flex;gap:8px">
+        <button onclick="confirmFetchedCifra()" ontouchstart="this.ontouchstart=null;confirmFetchedCifra()"
+          style="flex:2;padding:10px;border-radius:10px;border:none;
+          background:#34d399;color:#000;font-size:12px;font-weight:700;cursor:pointer">
+          ✓ Usar esta cifra
+        </button>
+        <a href="${sourceUrl}" target="_blank"
+          style="flex:1;padding:10px;border-radius:10px;border:1px solid #ffffff15;
+          background:transparent;color:#888;font-size:12px;text-decoration:none;
+          text-align:center;cursor:pointer">
+          Ver site ↗
+        </a>
+      </div>
+    </div>`;
+  
+  // Store temporarily
+  window._fetchedCifra = cifra;
+}
+
+function confirmFetchedCifra() {
+  if (!window._fetchedCifra) return;
+  // Switch to manual tab to show textarea and detect
+  document.getElementById("ed-cifra-raw").value = window._fetchedCifra;
+  setImportTab('manual');
+  parseChords();
+}
+
+function autoDetectKey(text) {
+  // Try to detect key from pasted cifra text
+  const match = text.match(/Tom[:\s]+([A-G][b#]?(?:m)?)/i) ||
+                text.match(/\bKey[:\s]+([A-G][b#]?)\b/i);
+  if (match) {
+    const sel = document.getElementById("ed-key");
+    if (sel) sel.value = match[1];
+  }
+}
+
 // ── INIT ──────────────────────────────────────────────────────────────────────
 initGraus();
 initHarm();
@@ -2131,21 +3161,23 @@ function startGame(lv){
 }
 function buildGameBtns(){
   const f=field(gameKey);
+  // Row 1: degrees 1-4
+  // Row 2: degrees 5-6-7 + stop
   ["g-btns-top","g-btns-bot"].forEach((id,row)=>{
     const el=document.getElementById(id); el.innerHTML="";
     const degs=row===0?[0,1,2,3]:[4,5,6];
     degs.forEach(i=>{
       const n=f[i], b=document.createElement("button");
       b.id="gbtn-"+n.deg;
-      b.style.cssText=`flex:1;padding:11px 2px;border-radius:11px;border:none;background:#ffffff10;color:${n.color};font-size:19px;font-weight:900;font-family:monospace;transition:all.12s`;
-      b.innerHTML=`<div>${n.deg}</div><div style="font-size:8px;opacity:.6;font-family:-apple-system">${n.chord}</div>`;
+      b.style.cssText=`flex:1;padding:9px 2px;border-radius:10px;border:2px solid ${n.color}33;background:#0d0d1f;color:${n.color};font-size:17px;font-weight:900;font-family:monospace;transition:all.12s;min-width:0`;
+      b.innerHTML=`<div style="line-height:1">${n.deg}</div><div style="font-size:9px;opacity:.8;font-family:-apple-system;margin-top:2px;font-weight:700">${n.chord}</div>`;
       const press=e=>{if(e.cancelable)e.preventDefault();gamePress(n.deg);};
       b.addEventListener("touchstart",press,{passive:false}); b.addEventListener("click",press);
       el.appendChild(b);
     });
     if(row===1){
       const stop=document.createElement("button");
-      stop.style.cssText="flex:1;padding:11px 2px;border-radius:11px;border:1px solid #ffffff15;background:#ffffff08;color:#555;font-size:10px";
+      stop.style.cssText="flex:1;padding:9px 2px;border-radius:10px;border:1px solid #ffffff15;background:#ffffff05;color:#555;font-size:11px;min-width:0";
       stop.innerHTML="■<br><span style='font-size:8px'>SAIR</span>";
       stop.onclick=()=>endGame(false);
       el.appendChild(stop);
@@ -2215,7 +3247,12 @@ function rrect(ctx,x,y,w,h,r){
 function gamePress(deg){
   if(!gameRunning) return;
   let best=null, bestDist=999;
-  gameNotes.forEach(n=>{ if(n.deg===deg){ const d=Math.abs(n.y-gHitY); if(d<90&&d<bestDist){bestDist=d;best=n;} }});
+  gameNotes.forEach(n=>{
+    if(n.deg===deg && n.y > 0 && n.y < gHitY+60) {
+      const d=Math.abs(n.y-gHitY);
+      if(d<bestDist){bestDist=d;best=n;}
+    }
+  });
   const btn=document.getElementById("gbtn-"+deg);
   if(best){
     gameNotes=gameNotes.filter(n=>n!==best);
@@ -2326,7 +3363,7 @@ initCaged();
   </div>
 
   <div id="game-screen" style="display:none;position:fixed;inset:0;background:#060610;z-index:200;
-    display:none;flex-direction:column">
+    flex-direction:column;overflow:hidden">
     <!-- HUD -->
     <div style="display:flex;justify-content:space-between;align-items:center;
       padding:10px 14px;border-bottom:1px solid #ffffff08;background:#00000099;flex-shrink:0">
@@ -2353,11 +3390,13 @@ initCaged();
       </div>
     </div>
     <!-- Canvas -->
-    <canvas id="game-canvas" style="flex:1;display:block"></canvas>
+    <canvas id="game-canvas" style="flex:1;display:block;min-height:0"></canvas>
     <!-- Buttons -->
-    <div style="background:#000000cc;border-top:1px solid #ffffff10;padding:8px 10px 20px;flex-shrink:0">
-      <div style="display:flex;gap:5px;margin-bottom:6px" id="g-btns-top"></div>
-      <div style="display:flex;gap:5px" id="g-btns-bot"></div>
+    <div style="background:#000000ee;border-top:1px solid #ffffff10;
+      padding:6px 8px 8px;flex-shrink:0;
+      padding-bottom:max(8px,env(safe-area-inset-bottom))">
+      <div style="display:flex;gap:4px;margin-bottom:4px" id="g-btns-top"></div>
+      <div style="display:flex;gap:4px" id="g-btns-bot"></div>
     </div>
   </div>
 </div>
@@ -2538,6 +3577,263 @@ initCaged();
       </button>
     </div>
   </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<!-- PAGE 7: PLANO DE ESTUDOS -->
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<div class="page" id="page-plano">
+  <div class="page-header">
+    <div class="page-title" style="background:linear-gradient(90deg,#34d399,#10b981);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent">
+      PLANO DE<br>ESTUDOS
+    </div>
+    <div class="page-sub">10–15 min por dia · resultado em 30 dias</div>
+  </div>
+  <div id="plano-content"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<!-- PAGE 8: REPERTÓRIO -->
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<div class="page" id="page-repertorio">
+  <div class="page-header">
+    <div class="page-title" style="background:linear-gradient(90deg,#fbbf24,#f59e0b);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent">
+      REPERTÓRIO
+    </div>
+    <div class="page-sub">Cifras com graus · Organizado por culto</div>
+  </div>
+
+  <!-- New Culto Inline Form (hidden by default) -->
+
+  <div id="new-culto-form" style="display:none;margin:0 0 14px;
+    background:#0d0d1f;border-radius:16px;padding:16px;
+    border:1px solid #f59e0b33">
+    <div style="font-size:11px;color:#f59e0b;font-weight:700;letter-spacing:2px;margin-bottom:12px">
+      NOVO CULTO
+    </div>
+    <input id="culto-name-input" placeholder="Nome do culto (ex: Culto Domingo)"
+      style="width:100%;padding:11px;border-radius:10px;border:1px solid #ffffff15;
+      background:#0a0a18;color:#fff;font-size:14px;margin-bottom:8px;outline:none;
+      -webkit-appearance:none">
+    <input id="culto-date-input" type="date"
+      style="width:100%;padding:11px;border-radius:10px;border:1px solid #ffffff15;
+      background:#0a0a18;color:#fff;font-size:14px;margin-bottom:12px;outline:none;
+      -webkit-appearance:none">
+    <div style="display:flex;gap:8px">
+      <button onclick="cancelNewCulto()"
+        style="flex:1;padding:12px;border-radius:11px;border:1px solid #ffffff15;
+        background:transparent;color:#888;font-size:13px;cursor:pointer">
+        Cancelar
+      </button>
+      <button onclick="confirmNewCulto()"
+        ontouchstart="this.ontouchstart=null;confirmNewCulto()"
+        style="flex:2;padding:12px;border-radius:11px;border:none;
+        background:linear-gradient(135deg,#f59e0b,#d97706);
+        color:#000;font-size:13px;font-weight:700;cursor:pointer">
+        Criar Culto
+      </button>
+    </div>
+  </div>
+
+  <div id="rep-content"></div>
+</div>
+
+<!-- SONG EDITOR (full screen) -->
+
+<div id="rep-editor" style="display:none;position:fixed;inset:0;background:#060610;
+  z-index:300;flex-direction:column">
+  <div style="padding:10px 14px;border-bottom:1px solid #ffffff08;
+    background:#060610;position:sticky;top:0;z-index:10;
+    display:flex;align-items:center;gap:10px">
+    <button onclick="closeEditor()" style="padding:7px 12px;border-radius:10px;
+      border:1px solid #ffffff15;background:transparent;color:#888;font-size:12px;cursor:pointer">
+      ← Voltar
+    </button>
+    <div style="flex:1;font-size:14px;font-weight:700;color:#fff" id="ed-song-title">Nova Música</div>
+    <button onclick="saveSong()" ontouchstart="this.ontouchstart=null;saveSong()"
+      style="padding:7px 14px;border-radius:10px;border:none;
+      background:#f59e0b;color:#000;font-size:12px;font-weight:700;cursor:pointer">
+      Salvar
+    </button>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:16px">
+
+```
+<!-- Song metadata -->
+<div class="section" style="margin-bottom:14px">
+  <input id="ed-title" placeholder="Nome da música *"
+    style="width:100%;padding:11px;border-radius:10px;border:1px solid #ffffff15;
+    background:#0a0a18;color:#fff;font-size:14px;margin-bottom:8px;outline:none">
+  <input id="ed-artist" placeholder="Artista"
+    style="width:100%;padding:11px;border-radius:10px;border:1px solid #ffffff15;
+    background:#0a0a18;color:#fff;font-size:13px;margin-bottom:8px;outline:none">
+  <div style="display:flex;gap:8px">
+    <div style="flex:1">
+      <div style="font-size:10px;color:#555;margin-bottom:5px;letter-spacing:1px">TOM</div>
+      <select id="ed-key" style="width:100%;padding:10px;border-radius:10px;
+        border:1px solid #ffffff15;background:#0a0a18;color:#fff;font-size:13px;outline:none">
+        <option>C</option><option>C#</option><option selected>D</option>
+        <option>D#</option><option>E</option><option>F</option>
+        <option>F#</option><option>G</option><option>G#</option>
+        <option>A</option><option>A#</option><option>B</option>
+        <option>Bb</option><option>Eb</option><option>Ab</option>
+      </select>
+    </div>
+    <div style="flex:1">
+      <div style="font-size:10px;color:#555;margin-bottom:5px;letter-spacing:1px">BPM</div>
+      <input id="ed-bpm" type="number" placeholder="BPM" value="70" min="40" max="200"
+        style="width:100%;padding:10px;border-radius:10px;border:1px solid #ffffff15;
+        background:#0a0a18;color:#fff;font-size:13px;outline:none">
+    </div>
+  </div>
+</div>
+
+<!-- Import cifra -->
+<div class="section" style="margin-bottom:14px">
+  <div style="font-size:10px;color:#555;letter-spacing:2px;margin-bottom:10px">
+    IMPORTAR CIFRA
+  </div>
+
+  <!-- Tab selector: Auto fetch vs Manual paste -->
+  <div style="display:flex;gap:6px;margin-bottom:12px;background:#0a0a18;
+    border-radius:10px;padding:3px">
+    <button id="import-tab-auto" onclick="setImportTab('auto')"
+      style="flex:1;padding:8px;border-radius:8px;border:none;
+      background:#34d399;color:#000;font-size:12px;font-weight:700;cursor:pointer">
+      🔍 Buscar
+    </button>
+    <button id="import-tab-manual" onclick="setImportTab('manual')"
+      style="flex:1;padding:8px;border-radius:8px;border:none;
+      background:transparent;color:#666;font-size:12px;cursor:pointer">
+      ✂️ Colar texto
+    </button>
+  </div>
+
+  <!-- AUTO: search and fetch -->
+  <div id="import-auto">
+    <div style="font-size:11px;color:#888;margin-bottom:8px;line-height:1.6">
+      Digite o nome → app busca no Bananas e importa automaticamente
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:8px">
+      <input id="ed-search-query" placeholder="Nome da música..."
+        style="flex:1;padding:10px;border-radius:10px;border:1px solid #ffffff15;
+        background:#0a0a18;color:#fff;font-size:13px;outline:none"
+        onkeydown="if(event.key==='Enter')fetchCifra()">
+      <button onclick="fetchCifra()" ontouchstart="this.ontouchstart=null;fetchCifra()"
+        style="padding:10px 14px;border-radius:10px;border:none;
+        background:#34d399;color:#000;font-size:13px;font-weight:700;cursor:pointer">
+        Buscar
+      </button>
+    </div>
+    <div id="fetch-status" style="font-size:12px;color:#888;min-height:20px;
+      text-align:center;margin-bottom:8px"></div>
+    <div id="fetch-results" style="display:flex;flex-direction:column;gap:6px"></div>
+  </div>
+
+  <!-- MANUAL: paste text -->
+  <div id="import-manual" style="display:none">
+    <div style="display:flex;gap:8px;margin-bottom:8px">
+      <a id="ed-cifraclub-link" href="https://www.bananacifras.com/cifra/gospel"
+        target="_blank"
+        style="flex:1;padding:9px;border-radius:10px;border:1px solid #f59e0b33;
+        background:#f59e0b0a;color:#f59e0b;font-size:11px;font-weight:700;
+        text-decoration:none;text-align:center">
+        Abrir Bananas ↗
+      </a>
+      <a href="https://www.cifraclub.com.br" target="_blank"
+        style="flex:1;padding:9px;border-radius:10px;border:1px solid #60a5fa33;
+        background:#60a5fa0a;color:#60a5fa;font-size:11px;font-weight:700;
+        text-decoration:none;text-align:center">
+        Cifra Club ↗
+      </a>
+    </div>
+    <div style="font-size:11px;color:#888;margin-bottom:6px;line-height:1.5">
+      Copie o texto da cifra no site e cole aqui:
+    </div>
+    <textarea id="ed-cifra-raw" placeholder="Cole aqui o texto da cifra..."
+      style="width:100%;height:140px;padding:11px;border-radius:10px;
+      border:1px solid #ffffff15;background:#0a0a18;color:#ccc;font-size:12px;
+      font-family:monospace;resize:vertical;outline:none;line-height:1.6"
+      oninput="if(this.value.length>10)autoDetectKey(this.value)"></textarea>
+    <button onclick="parseChords()" ontouchstart="this.ontouchstart=null;parseChords()"
+      style="width:100%;padding:10px;border-radius:10px;border:none;margin-top:8px;
+      background:#34d399;color:#000;font-size:13px;font-weight:700;cursor:pointer">
+      ✦ Detectar Graus
+    </button>
+  </div>
+</div>
+
+<!-- Preview with degrees -->
+<div id="ed-preview" style="display:none">
+  <div class="section">
+    <div style="font-size:10px;color:#34d399;letter-spacing:2px;margin-bottom:12px;font-weight:700">
+      ✦ PRÉVIA COM GRAUS
+    </div>
+    <div id="ed-preview-content"></div>
+  </div>
+</div>
+
+<!-- Notes -->
+<div class="section">
+  <div style="font-size:10px;color:#555;letter-spacing:2px;margin-bottom:8px">OBSERVAÇÕES</div>
+  <textarea id="ed-notes" placeholder="Tom original, observações, capo..."
+    style="width:100%;height:80px;padding:11px;border-radius:10px;
+    border:1px solid #ffffff15;background:#0a0a18;color:#ccc;font-size:12px;
+    resize:vertical;outline:none"></textarea>
+</div>
+```
+
+  </div>
+</div>
+
+<!-- SONG VIEWER (full screen) -->
+
+<div id="rep-viewer" style="display:none;position:fixed;inset:0;background:#060610;
+  z-index:300;flex-direction:column">
+  <div style="padding:10px 14px;border-bottom:1px solid #ffffff08;
+    background:#060610;position:sticky;top:0;z-index:10;
+    display:flex;align-items:center;gap:10px">
+    <button onclick="closeViewer()" style="padding:7px 12px;border-radius:10px;
+      border:1px solid #ffffff15;background:transparent;color:#888;font-size:12px;cursor:pointer">
+      ← Voltar
+    </button>
+    <div style="flex:1">
+      <div style="font-size:14px;font-weight:700;color:#fff" id="vw-title">—</div>
+      <div style="font-size:11px;color:#888" id="vw-meta">—</div>
+    </div>
+    <button onclick="editCurrentSong()" style="padding:7px 12px;border-radius:10px;
+      border:1px solid #ffffff15;background:transparent;color:#888;font-size:12px;cursor:pointer">
+      ✎ Editar
+    </button>
+  </div>
+  <!-- View mode toggle -->
+  <div style="display:flex;gap:6px;padding:10px 14px;border-bottom:1px solid #ffffff08">
+    <button id="vw-mode-deg" onclick="setViewMode('degrees')"
+      style="flex:1;padding:8px;border-radius:9px;border:none;
+      background:#f59e0b;color:#000;font-size:12px;font-weight:700;cursor:pointer">
+      Graus (treino)
+    </button>
+    <button id="vw-mode-both" onclick="setViewMode('both')"
+      style="flex:1;padding:8px;border-radius:9px;border:1px solid #ffffff15;
+      background:transparent;color:#888;font-size:12px;cursor:pointer">
+      Graus + Acordes
+    </button>
+    <button id="vw-mode-chords" onclick="setViewMode('chords')"
+      style="flex:1;padding:8px;border-radius:9px;border:1px solid #ffffff15;
+      background:transparent;color:#888;font-size:12px;cursor:pointer">
+      Só Acordes
+    </button>
+  </div>
+  <div id="vw-content" style="flex:1;overflow-y:auto;padding:16px;
+    font-family:monospace;font-size:14px;line-height:2.2;white-space:pre-wrap"></div>
 </div>
 
 </body>
